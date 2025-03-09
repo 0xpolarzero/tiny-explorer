@@ -1,13 +1,18 @@
-import { Button } from "@/components/ui/button";
+import { Config } from "@/components/config";
 
 import "@/App.css";
 
-function App() {
+import { Toaster } from "sonner";
+
+const App = () => {
   return (
-    <div className="flex flex-col items-center justify-center min-h-svh bg-background dark">
-      <Button className="cursor-pointer">Click me</Button>
-    </div>
+    <>
+      <Toaster />
+      <div className="flex flex-col items-center justify-center min-h-svh bg-background">
+        <Config />
+      </div>
+    </>
   );
-}
+};
 
 export default App;
