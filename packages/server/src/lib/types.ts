@@ -5,8 +5,9 @@ export type GetContractOutput = {
   abi: abi.ABI;
   name?: string;
   sources?: Array<{
-    path?: string;
+    name: string;
     content: string;
+    path?: string;
     explanation?: string;
   }>;
 };
@@ -18,11 +19,11 @@ export type ExplainContractInput = {
 
 export type ExplainContractOutput = {
   overview: string;
-  events: Array<any>; // TODO: details of each event by llm
+  events: Array<{ name: string }>; // TODO: details of each event by llm
 };
 
 export type ExplainEventInput = ExplainContractInput & {
-  event: any; // TODO: what comes from the event listener
+  event: { name: string }; // TODO: what comes from the event listener
 };
 
 export type ExplainEventOutput = {

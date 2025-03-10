@@ -56,6 +56,7 @@ export class WhatsAbiService {
         const knownContract = KNOWN_CONTRACTS.find((k) => k.path === s.path);
         if (knownContract) {
           return {
+            name: knownContract.name,
             path: s.path,
             content: s.content,
             explanation: knownContract.explanation,
@@ -63,6 +64,7 @@ export class WhatsAbiService {
         }
 
         return {
+          name: s.content.match(/contract (\w+) {/)?.[1] ?? "",
           path: s.path,
           content: s.content,
         };

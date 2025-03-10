@@ -12,23 +12,26 @@ export class LLMService {
   constructor(private readonly options: LLMServiceOptions) {}
 
   async explainEvent(input: ExplainContractOutput & ExplainEventInput): Promise<ExplainEventOutput> {
-    // TODO: parse event details correctly to form the prompt and input
-    const formattedInput = "";
-    const result = await this.prompt(PROMPTS.explainEvent, formattedInput);
+    const event = JSON.stringify(input.event);
+    const eventInfo = input.events.find((e) => e.name === input.event.name);
+    if (!eventInfo) throw new Error("Event not found"); // TODO: this means there is a prompting or other issue we need to handle
+    const formattedInput = PROMPTS.explainEvent(JSON.stringify({ event, eventInfo }));
+
+    const result = await this.prompt(formattedInput);
     return JSON.parse(result);
   }
 
   async explainContract(input: GetContractOutput): Promise<ExplainContractOutput> {
-    // TODO: parse contract details correctly to form the prompt and input
-    const formattedInput = "";
-    const result = await this.prompt(PROMPTS.explainContract, formattedInput);
+    const formattedInput = PROMPTS.explainContract(JSON.stringify(input));
+
+    const result = await this.prompt(formattedInput);
     return JSON.parse(result);
   }
 
-  private async prompt(systemPrompt: string, input: string): Promise<string> {
+  private async prompt(input: string): Promise<string> {
     const client = new TextGeneration(this.options.modelUrl, this.options.apiKey);
     const res = await client.generate({
-      input: `${systemPrompt}\n\n# Input\n\n${input}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n`,
+      input,
       stop: ["<|eot_id|>"],
       stream: false,
     });
