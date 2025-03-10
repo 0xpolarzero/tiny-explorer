@@ -5,9 +5,6 @@
     "lib": ["ES2023"],
     "module": "preserve",
     "moduleResolution": "Bundler",
-    "sourceMap": true,
-    "declaration": true,
-    "composite": true,
-    "declarationMap": true
+    "sourceMap": true
   }
 }

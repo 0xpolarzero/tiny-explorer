@@ -1,8 +1,8 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import { z } from "zod";
 
+import { ExplainContractInput } from "@/lib/types";
 import { Service } from "@/service";
-import { ResolveInput, ResolveOutput } from "@/service/types";
 
 export type AppContext = {
   service: Service;
@@ -40,14 +40,15 @@ export function createAppRouter() {
       return ctx.service.getStatus();
     }),
 
-    resolve: protectedProcedure
+    explainContract: protectedProcedure
       .input(
         z.object({
-          matches: z.array(z.tuple([z.string(), z.string()])),
-        }) satisfies z.ZodType<ResolveInput>,
+          chainId: z.string(),
+          contractAddress: z.string(),
+        }) satisfies z.ZodType<ExplainContractInput>,
       )
-      .query(({ ctx, input }) => {
-        return ctx.service.resolve(input);
+      .mutation(({ ctx, input }) => {
+        return ctx.service.explainContract(input);
       }),
   });
 }

@@ -1,7 +1,7 @@
 import { TextGeneration } from "deepinfra";
 
-import { PROMPTS } from "@/prompts";
-import { ExplainContractInput, ExplainEventInput } from "@/service/types";
+import { PROMPTS } from "@/lib/prompts";
+import { ExplainContractOutput, ExplainEventInput, ExplainEventOutput, GetContractOutput } from "@/lib/types";
 
 export type LLMServiceOptions = {
   modelUrl: string;
@@ -11,14 +11,18 @@ export type LLMServiceOptions = {
 export class LLMService {
   constructor(private readonly options: LLMServiceOptions) {}
 
-  async explainContract(input: ExplainContractInput): Promise<string> {
-    // TODO: parse contract details correctly to form the prompt and input
-    return await this.prompt(PROMPTS.explainContract, input);
+  async explainEvent(input: ExplainContractOutput & ExplainEventInput): Promise<ExplainEventOutput> {
+    // TODO: parse event details correctly to form the prompt and input
+    const formattedInput = "";
+    const result = await this.prompt(PROMPTS.explainEvent, formattedInput);
+    return JSON.parse(result);
   }
 
-  async explainEvent(input: ExplainEventInput): Promise<string> {
-    // TODO: parse event details correctly to form the prompt and input
-    return await this.prompt(PROMPTS.explainEvent, input);
+  async explainContract(input: GetContractOutput): Promise<ExplainContractOutput> {
+    // TODO: parse contract details correctly to form the prompt and input
+    const formattedInput = "";
+    const result = await this.prompt(PROMPTS.explainContract, formattedInput);
+    return JSON.parse(result);
   }
 
   private async prompt(systemPrompt: string, input: string): Promise<string> {

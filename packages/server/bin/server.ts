@@ -9,7 +9,7 @@ import { AppRouter, createAppRouter } from "@/app/router";
 import { Service } from "@/service";
 
 // Validate environment variables
-export const env = parseEnv();
+const env = parseEnv();
 
 // @see https://fastify.dev/docs/latest/
 export const server = fastify({

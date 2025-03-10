@@ -15,6 +15,11 @@ const commonSchema = z.object({
   // Cache
   DRAGONFLY_PORT: z.coerce.number().positive().default(6379),
   DEFAULT_CACHE_TIME: z.coerce.number().positive().default(30),
+
+  // API keys
+  MAINNET_RPC_URL: z.string().default("https://eth.llamarpc.com"),
+  MAINNET_ETHERSCAN_API_KEY: z.string().default(""),
+  MAINNET_BLOCKSCOUT_API_KEY: z.string().default(""),
 });
 
 export function parseEnv<TSchema extends ZodTypeAny | undefined = undefined>(
