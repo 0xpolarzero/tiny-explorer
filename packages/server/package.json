@@ -1,0 +1,38 @@
+{
+  "name": "server",
+  "version": "0.0.0",
+  "description": "A tRPC server with protected API endpoints for making API requests and interacting with a LLM.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "start:cache": "chmod +x ./bin/start-cache.sh && ./bin/start-cache.sh",
+    "start:cache:ci": "chmod +x ./bin/start-cache.sh && ./bin/start-cache.sh --ci",
+    "start:server": "dotenvx run -f ./../../.env --quiet -- tsx bin/index",
+    "start:server:ci": "nohup dotenvx run -f ./../../.env --quiet -- tsx bin/index > /dev/null 2>&1 &",
+    "teardown": "pnpm teardown:cache && pnpm teardown:server",
+    "teardown:cache": "docker-compose -f docker-compose.cache.yml down --volumes --remove-orphans",
+    "teardown:server": "kill $(lsof -t -i:8888) 2>/dev/null || true",
+    "test": "dotenvx run -f ./../../.env --quiet -- vitest run"
+  },
+  "dependencies": {
+    "@fastify/compress": "^6.5.0",
+    "@fastify/cors": "^8.3.0",
+    "@fastify/websocket": "^7.2.0",
+    "@trpc/client": "10.34.0",
+    "@trpc/server": "10.34.0",
+    "debug": "^4.3.4",
+    "deepinfra": "^2.0.2",
+    "fastify": "^4.21.0",
+    "redis": "^4.7.0",
+    "ws": "^8.18.0",
+    "zod": "^3.21.4"
+  },
+  "devDependencies": {
+    "@dotenvx/dotenvx": "^1.14.1",
+    "@types/debug": "^4.1.7",
+    "@types/ws": "^8.5.12",
+    "tsx": "^3.12.6",
+    "vite-tsconfig-paths": "^4.2.0",
+    "vitest": "3.0.4"
+  }
+}

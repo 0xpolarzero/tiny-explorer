@@ -11,7 +11,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CHAIN_OPTIONS } from "@/lib/providers";
+import { SUPPORTED_CHAINS } from "@/lib/providers";
 import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
@@ -37,7 +37,7 @@ export const Config = () => {
   });
 
   const onSubmit = (data: z.infer<typeof FormSchema>) => {
-    const chain = CHAIN_OPTIONS.find((option) => option.chain.id.toString() === data.chain);
+    const chain = SUPPORTED_CHAINS.find((option) => option.chain.id.toString() === data.chain);
     if (!chain) return;
 
     updateStore(chain, data.contractAddress);
@@ -64,7 +64,7 @@ export const Config = () => {
                       )}
                     >
                       {field.value
-                        ? CHAIN_OPTIONS.find((option) => option.chain.id.toString() === field.value)?.chain.name
+                        ? SUPPORTED_CHAINS.find((option) => option.chain.id.toString() === field.value)?.chain.name
                         : "Select chain"}
                       <ChevronsUpDown className="opacity-50" />
                     </Button>
@@ -76,7 +76,7 @@ export const Config = () => {
                     <CommandList>
                       <CommandEmpty>No chain found.</CommandEmpty>
                       <CommandGroup>
-                        {CHAIN_OPTIONS.map((option) => (
+                        {SUPPORTED_CHAINS.map((option) => (
                           <CommandItem
                             value={option.chain.id.toString()}
                             key={option.chain.id.toString()}

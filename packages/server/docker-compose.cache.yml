@@ -1,0 +1,11 @@
+version: "3.8"
+
+services:
+  cache:
+    build:
+      context: .
+      dockerfile: Dockerfile.cache
+    environment:
+      - CACHE_PORT=${DRAGONFLY_PORT:-6379}
+    ports:
+      - "${DRAGONFLY_PORT:-6379}:${DRAGONFLY_PORT:-6379}"
