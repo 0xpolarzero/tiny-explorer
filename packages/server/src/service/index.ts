@@ -1,5 +1,6 @@
 import { debug } from "@/app/debug";
 import { ExplainContractInput, ExplainContractOutput, ExplainEventInput, ExplainEventOutput } from "@/lib/types";
+import { AuthService, AuthServiceOptions } from "@/service/auth";
 import { CacheService, CacheServiceOptions } from "@/service/cache";
 import { LLMService, LLMServiceOptions } from "@/service/llm";
 import { WhatsAbiService } from "@/service/whatsabi";
@@ -9,12 +10,21 @@ export class Service {
   private llm: LLMService;
   private whatsabi: WhatsAbiService;
   private cache: CacheService;
+  private auth: AuthService;
 
   /** Creates a new instance of Service */
-  constructor(options: { llm: LLMServiceOptions; cache: CacheServiceOptions }) {
+  constructor(options: {
+    llm: LLMServiceOptions;
+    cache: CacheServiceOptions;
+    auth: Omit<AuthServiceOptions, "cache">;
+  }) {
     this.llm = new LLMService(options.llm);
     this.whatsabi = new WhatsAbiService();
     this.cache = new CacheService(options.cache);
+    this.auth = new AuthService({
+      sessionTtl: options.auth.sessionTtl,
+      cache: this.cache,
+    });
   }
 
   /**
@@ -71,5 +81,18 @@ export class Service {
       debug("Error in explainContract:", error);
       throw error;
     }
+  }
+
+  // Add auth methods
+  createSession() {
+    return this.auth.createSession();
+  }
+
+  validateSession(sessionId: string | undefined) {
+    return this.auth.validateSession(sessionId);
+  }
+
+  clearSession(sessionId: string) {
+    return this.auth.clearSession(sessionId);
   }
 }

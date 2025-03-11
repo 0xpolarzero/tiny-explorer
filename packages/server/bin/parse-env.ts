@@ -4,9 +4,11 @@ const commonSchema = z.object({
   NODE_ENV: z.enum(["local", "test", "production"]).default("local"),
 
   // Server & auth
-  SERVER_HOST: z.string().default("0.0.0.0"),
+  SERVER_HOST: z.string().default("localhost"),
   SERVER_PORT: z.coerce.number().positive().default(8888),
-  BEARER_TOKEN: z.string().default("bearer"),
+  FRONTEND_URL: z.string().default("http://localhost:5173"), // for CORS in production
+  COOKIE_SECRET: z.string().min(32).default("secret-cookie-mininum-32-chars-long"), // protect from xss
+  SESSION_TTL: z.number().default(60 * 60 * 24), // 24 hours in seconds
 
   // LLM (TODO: update to use LM Studio)
   DEEPINFRA_MODEL_URL: z.string().default("https://api.deepinfra.com/v1/inference/Qwen/QwQ-32B"),
@@ -14,7 +16,10 @@ const commonSchema = z.object({
 
   // Cache
   DRAGONFLY_PORT: z.coerce.number().positive().default(6379),
-  DEFAULT_CACHE_TIME: z.coerce.number().positive().default(30),
+  DEFAULT_CACHE_TIME: z.coerce
+    .number()
+    .positive()
+    .default(60 * 60 * 24), // 24 hours in seconds
 
   // API keys
   MAINNET_RPC_URL: z.string().default("https://eth.llamarpc.com"),

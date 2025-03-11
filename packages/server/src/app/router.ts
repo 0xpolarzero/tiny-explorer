@@ -1,12 +1,16 @@
-import { initTRPC, TRPCError } from "@trpc/server";
+import { initTRPC } from "@trpc/server";
+import { CreateFastifyContextOptions } from "@trpc/server/adapters/fastify";
 import { z } from "zod";
 
 import { ExplainContractInput } from "@/lib/types";
 import { Service } from "@/service";
+import { COOKIE_NAME } from "@/service/auth";
 
 export type AppContext = {
   service: Service;
-  authorized: boolean;
+  sessionTtl: number;
+  req: CreateFastifyContextOptions["req"];
+  res: CreateFastifyContextOptions["res"];
 };
 
 /**
@@ -18,19 +22,41 @@ export function createAppRouter() {
   const t = initTRPC.context<AppContext>().create();
 
   const protectedProcedure = t.procedure.use(
-    t.middleware(({ ctx: { authorized }, next }) => {
-      if (!authorized) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-          message: "Missing or invalid authorization header",
-        });
-      }
-
+    t.middleware(async ({ ctx, next }) => {
+      const sessionId = ctx.req.cookies[COOKIE_NAME];
+      await ctx.service.validateSession(sessionId);
       return next();
     }),
   );
 
   return t.router({
+    /**
+     * Creates a new session and sets the session cookie
+     *
+     * @returns Object containing status code 200 if session is created
+     */
+    login: t.procedure.mutation(async ({ ctx }) => {
+      const { sessionId, cookieOptions } = await ctx.service.createSession();
+      ctx.res.setCookie(COOKIE_NAME, sessionId, cookieOptions);
+
+      return { success: true, sessionId };
+    }),
+
+    /**
+     * Clears the session cookie
+     *
+     * @returns Object containing status code 200 if session is cleared
+     */
+    logout: t.procedure.mutation(async ({ ctx }) => {
+      const sessionId = ctx.req.cookies[COOKIE_NAME];
+      if (sessionId) {
+        const cleared = await ctx.service.clearSession(sessionId);
+        if (cleared) ctx.res.clearCookie(COOKIE_NAME);
+      }
+
+      return { success: true, sessionId };
+    }),
+
     /**
      * Returns the server status
      *

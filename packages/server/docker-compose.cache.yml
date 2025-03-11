@@ -7,5 +7,10 @@ services:
       dockerfile: Dockerfile.cache
     environment:
       - CACHE_PORT=${DRAGONFLY_PORT:-6379}
+    healthcheck:
+      test: ["CMD", "dragonfly-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     ports:
       - "${DRAGONFLY_PORT:-6379}:${DRAGONFLY_PORT:-6379}"

@@ -32,6 +32,12 @@ export function createClient({ httpUrl, wsUrl, httpHeaders }: CreateClientOption
         false: httpBatchLink({
           url: httpUrl,
           headers: httpHeaders,
+          fetch: (url, options) => {
+            return fetch(url, {
+              ...options,
+              credentials: "include",
+            });
+          },
         }),
       }),
     ],

@@ -5,11 +5,11 @@ import { applyWSSHandler } from "@trpc/server/adapters/ws";
 import fastify from "fastify";
 
 import { parseEnv } from "@bin/parse-env";
-import { AppRouter, createAppRouter } from "@/app/router";
+import { AppContext, AppRouter, createAppRouter } from "@/app/router";
 import { Service } from "@/service";
 
 // Validate environment variables
-const env = parseEnv();
+export const env = parseEnv();
 
 // @see https://fastify.dev/docs/latest/
 export const server = fastify({
@@ -19,17 +19,30 @@ export const server = fastify({
 
 // Register plugins
 await server.register(import("@fastify/compress"));
-await server.register(import("@fastify/cors"));
 await server.register(fastifyWebsocket);
+
+// With CORS configuration to specify allowed origins
+await server.register(import("@fastify/cors"), {
+  origin: env.NODE_ENV === "production" ? [env.FRONTEND_URL] : "*",
+  credentials: true,
+});
+
+// Cookie support
+await server.register(import("@fastify/cookie"), {
+  secret: env.COOKIE_SECRET,
+  hook: "onRequest",
+  parseOptions: {
+    httpOnly: true,
+    secure: env.NODE_ENV === "production",
+    sameSite: "strict" as const,
+    maxAge: env.SESSION_TTL,
+  },
+});
 
 // k8s healthchecks
 server.get("/healthz", (_, res) => res.code(200).send());
 server.get("/readyz", (_, res) => res.code(200).send());
 server.get("/", (_, res) => res.code(200).send("hello world"));
-
-// Helper function to verify bearer token
-// @ts-expect-error IncomingMessage is not typed
-const isAuthorized = (req: IncomingMessage) => req.headers?.authorization === `Bearer ${env.BEARER_TOKEN}`;
 
 /**
  * Starts the server
@@ -47,6 +60,9 @@ export const start = async () => {
         port: env.DRAGONFLY_PORT,
         defaultCacheTime: env.DEFAULT_CACHE_TIME,
       },
+      auth: {
+        sessionTtl: env.SESSION_TTL,
+      },
     });
 
     // @see https://trpc.io/docs/server/adapters/fastify
@@ -55,7 +71,12 @@ export const start = async () => {
       useWSS: true,
       trpcOptions: {
         router: createAppRouter(),
-        createContext: async ({ req }) => ({ service, authorized: isAuthorized(req) }),
+        createContext: async ({ req, res }): Promise<AppContext> => ({
+          service,
+          sessionTtl: env.SESSION_TTL,
+          req,
+          res,
+        }),
       },
     });
 
@@ -66,7 +87,14 @@ export const start = async () => {
     applyWSSHandler({
       wss: server.websocketServer,
       router: createAppRouter(),
-      createContext: async ({ req }) => ({ service, authorized: isAuthorized(req) }),
+      createContext: async ({ req, res }): Promise<AppContext> => ({
+        service,
+        sessionTtl: env.SESSION_TTL,
+        // @ts-expect-error Bad Websocket support
+        req,
+        // @ts-expect-error Bad Websocket support
+        res,
+      }),
     });
 
     return server;
