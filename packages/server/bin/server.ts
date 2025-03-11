@@ -4,7 +4,7 @@ import { fastifyTRPCPlugin } from "@trpc/server/adapters/fastify";
 import { applyWSSHandler } from "@trpc/server/adapters/ws";
 import fastify from "fastify";
 
-import { validateEnv } from "@core/env";
+import { validateEnv } from "@core";
 import { AppContext, AppRouter, createAppRouter } from "@/app/router";
 import { Service } from "@/service";
 

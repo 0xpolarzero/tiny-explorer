@@ -11,7 +11,7 @@ export default defineConfig({
     alias: {
       "@/*": "./src/*",
       "@bin/*": "./bin/*",
-      "@core/*": "./../core/src/*",
+      "@core": "./../core/src/index.ts",
     },
   },
 });

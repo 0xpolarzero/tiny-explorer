@@ -3,7 +3,7 @@
   "compilerOptions": {
     "paths": {
       "@/*": ["./src/*"],
-      "@core/*": ["./../core/src/*"]
+      "@core": ["./../core/src/index.ts"]
     }
   },
   "include": ["src"]

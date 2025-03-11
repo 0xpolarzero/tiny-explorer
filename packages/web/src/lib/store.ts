@@ -1,7 +1,7 @@
 import { Address } from "tevm";
 import { create } from "zustand";
 
-import { Chain, SUPPORTED_CHAINS } from "@core/chains";
+import { Chain, SUPPORTED_CHAINS } from "@core";
 
 type State = {
   chain: Chain;

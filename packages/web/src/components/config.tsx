@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { isAddress } from "tevm";
 import { z } from "zod";
 
-import { SUPPORTED_CHAINS } from "@core/chains";
+import { SUPPORTED_CHAINS } from "@core";
 import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";

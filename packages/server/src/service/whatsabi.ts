@@ -1,7 +1,7 @@
 import { autoload, loaders } from "@shazow/whatsabi";
 import { createMemoryClient, http } from "tevm";
 
-import { getChain } from "@core/chains";
+import { getChain } from "@core";
 import { debug } from "@/app/debug";
 import { KNOWN_CONTRACTS } from "@/lib/known-contracts";
 import { GetContractInput, GetContractOutput } from "@/lib/types";
