@@ -1,17 +1,21 @@
+import { Toaster } from "sonner";
+
 import { Config } from "@/components/config";
+import { ContractDetails } from "@/components/contract-details";
+import { Wrapper } from "@/components/wrapper";
+import { ServerProvider } from "@/providers/server-provider";
 
 import "@/App.css";
 
-import { Toaster } from "sonner";
-
 const App = () => {
   return (
-    <>
+    <ServerProvider>
       <Toaster />
-      <div className="flex flex-col items-center justify-center min-h-svh bg-background">
+      <Wrapper>
         <Config />
-      </div>
-    </>
+        <ContractDetails />
+      </Wrapper>
+    </ServerProvider>
   );
 };
 

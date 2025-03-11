@@ -1,7 +1,7 @@
 import { autoload, loaders } from "@shazow/whatsabi";
 import { createMemoryClient, http } from "tevm";
 
-import { getChain } from "@core/chains";
+import { getChainConfig } from "@core/chains";
 import { debug } from "@server/app/debug";
 import { KNOWN_CONTRACTS } from "@server/lib/known-contracts";
 import { GetContractInput, GetContractOutput } from "@server/lib/types";
@@ -16,7 +16,7 @@ export class WhatsAbiService {
   // TODO: can we be more selective with source code? reduce it as much as possible to fit the context length?
   // TODO: can we grab more details from the loaderResult (e.g. .devdoc.details, .devdoc.title, .userdoc)?
   async getContract({ chainId, contractAddress }: GetContractInput): Promise<GetContractOutput> {
-    const chain = getChain(chainId);
+    const chain = getChainConfig({ chainId });
     if (!chain) throw new Error("Chain not supported");
 
     // Create client & loader

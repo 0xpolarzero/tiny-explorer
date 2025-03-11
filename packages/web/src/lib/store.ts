@@ -1,15 +1,16 @@
 import { Address } from "tevm";
+import { Common } from "tevm/common";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
-import { Chain, getChain, SUPPORTED_CHAINS } from "@core/chains";
+import { SUPPORTED_CHAINS } from "@core/chains";
 
 type State = {
   chainId: number;
   contractAddress: Address | undefined;
 
-  update: (chain: Chain, contractAddress: Address) => void;
-  getCurrentChain: () => Chain;
+  update: (chain: Common, contractAddress: Address) => void;
+  getCurrentChain: () => Common;
 };
 
 export const useStore = create<State>()(
@@ -20,15 +21,13 @@ export const useStore = create<State>()(
 
       getCurrentChain: () => {
         const { chainId } = get();
-        return getChain(chainId);
+        const chain = SUPPORTED_CHAINS.find((chain) => chain.id.toString() === chainId.toString());
+        if (!chain) throw new Error("Chain not found");
+
+        return chain;
       },
 
-      update: (chain: Chain, contractAddress: Address) => {
-        // Update state
-        set({ chainId: chain.id, contractAddress });
-
-        // Start fetching contract explanation from the LLM
-      },
+      update: (chain: Common, contractAddress: Address) => set({ chainId: chain.id, contractAddress }),
     }),
     {
       name: "contract-storage",

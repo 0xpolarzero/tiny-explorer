@@ -1,59 +1,23 @@
-import { z, ZodError, ZodIntersection, ZodTypeAny } from "zod";
+import { z, ZodError } from "zod";
 
-const commonSchema = z.object({
-  NODE_ENV: z.enum(["local", "test", "production"]).default("local"),
-
-  // Server & auth
-  SERVER_HOST: z.string().default("localhost"),
-  SERVER_PORT: z.coerce.number().positive().default(8888),
-  FRONTEND_URL: z.string().default("http://localhost:5173"), // for CORS in production
-  COOKIE_SECRET: z.string().min(32).default("secret-cookie-mininum-32-chars-long"), // protect from xss
-  SESSION_TTL: z.number().default(60 * 60 * 24), // 24 hours in seconds
-
-  // LLM (TODO: update to use LM Studio)
-  DEEPINFRA_MODEL_URL: z.string().default("https://api.deepinfra.com/v1/inference/Qwen/QwQ-32B"),
-  DEEPINFRA_API_KEY: z.string(),
-
-  // Cache
-  DRAGONFLY_PORT: z.coerce.number().positive().default(6379),
-  DEFAULT_CACHE_TIME: z.coerce
-    .number()
-    .positive()
-    .default(60 * 60 * 24), // 24 hours in seconds
-
-  // API keys
-  MAINNET_RPC_URL: z.string().default("https://eth.llamarpc.com"),
-  MAINNET_ETHERSCAN_API_KEY: z.string().default(""),
-  MAINNET_BLOCKSCOUT_API_KEY: z.string().default(""),
-});
-
-/**
- * Parses environment variables without validation or process exit Useful for client-side code that needs env defaults
- * but not validation
- */
-export function parseEnv<TSchema extends ZodTypeAny | undefined = undefined>(
-  schema?: TSchema,
-  env: Record<string, unknown> = {},
-): z.infer<TSchema extends ZodTypeAny ? ZodIntersection<typeof commonSchema, TSchema> : typeof commonSchema> {
-  const envSchema = schema !== undefined ? z.intersection(commonSchema, schema) : commonSchema;
-  try {
-    return envSchema.safeParse(env);
-  } catch (error) {
-    // Return defaults for any missing values
-    return envSchema.parse({});
-  }
-}
+import { ServerEnv, serverEnvSchema } from "./env.server";
+import { SharedEnv, sharedEnvSchema } from "./env.shared";
+import { WebEnv, webEnvSchema } from "./env.web";
 
 /**
  * Validates environment variables and exits process if invalid Used by server-side code that requires proper env
  * configuration
  */
-export function validateEnv<TSchema extends ZodTypeAny | undefined = undefined>(
-  schema?: TSchema,
-): z.infer<TSchema extends ZodTypeAny ? ZodIntersection<typeof commonSchema, TSchema> : typeof commonSchema> {
-  const envSchema = schema !== undefined ? z.intersection(commonSchema, schema) : commonSchema;
+export function parseEnv<T extends "web" | "server" = "server">(
+  type?: T,
+): T extends "web" ? SharedEnv & WebEnv : SharedEnv & ServerEnv {
+  const envSchema =
+    type === "web" ? z.intersection(sharedEnvSchema, webEnvSchema) : z.intersection(sharedEnvSchema, serverEnvSchema);
+
   try {
-    return envSchema.parse(process.env);
+    // @ts-expect-error Property env doesn't exist in import.meta
+    const envSource = type === "web" ? import.meta.env : process.env;
+    return envSchema.parse(envSource) as any;
   } catch (error) {
     if (error instanceof ZodError) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -64,3 +28,8 @@ export function validateEnv<TSchema extends ZodTypeAny | undefined = undefined>(
     throw error;
   }
 }
+
+// Export types for convenience
+export type { SharedEnv } from "./env.shared";
+export type { WebEnv, WebEnvironment } from "./env.web";
+export type { ServerEnv, ServerEnvironment } from "./env.server";

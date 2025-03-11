@@ -1,5 +1,5 @@
 {
-  "extends": "../../.tsconfigs/base.json",
+  "extends": "../../.tsconfigs/web.json",
   "include": ["src"],
   "compilerOptions": {
     "baseUrl": ".",

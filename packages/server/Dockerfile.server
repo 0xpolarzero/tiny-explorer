@@ -1,5 +1,5 @@
 FROM node:21.4.0-bookworm-slim
-ENV NODE_ENV=production
+ENV EXPOSED_NODE_ENV=production
 
 # install build dependencies for bigint-buffer (https://solana.stackexchange.com/questions/4077/bigint-failed-to-load-bindings-pure-js-will-be-used-try-npm-run-rebuild-whe)
 RUN apt update \

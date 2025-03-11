@@ -4,12 +4,12 @@ import { fastifyTRPCPlugin } from "@trpc/server/adapters/fastify";
 import { applyWSSHandler } from "@trpc/server/adapters/ws";
 import fastify from "fastify";
 
-import { validateEnv } from "@core/env";
+import { parseEnv } from "@core/env";
 import { AppContext, AppRouter, createAppRouter } from "@server/app/router";
 import { Service } from "@server/service";
 
 // Validate environment variables
-export const env = validateEnv();
+export const env = parseEnv("server");
 
 // @see https://fastify.dev/docs/latest/
 export const server = fastify({
@@ -23,7 +23,7 @@ await server.register(fastifyWebsocket);
 
 // With CORS configuration to specify allowed origins
 await server.register(import("@fastify/cors"), {
-  origin: env.NODE_ENV === "production" ? [env.FRONTEND_URL] : "*",
+  origin: env.EXPOSED_NODE_ENV === "production" ? env.FRONTEND_URL : "http://localhost:5173",
   credentials: true,
 });
 
@@ -33,7 +33,7 @@ await server.register(import("@fastify/cookie"), {
   hook: "onRequest",
   parseOptions: {
     httpOnly: true,
-    secure: env.NODE_ENV === "production",
+    secure: env.EXPOSED_NODE_ENV === "production",
     sameSite: "strict" as const,
     maxAge: env.SESSION_TTL,
   },
@@ -80,8 +80,8 @@ export const start = async () => {
       },
     });
 
-    await server.listen({ host: env.SERVER_HOST, port: env.SERVER_PORT });
-    console.log(`Server listening on http://${env.SERVER_HOST}:${env.SERVER_PORT}`);
+    await server.listen({ host: env.EXPOSED_SERVER_HOST_DEV, port: env.EXPOSED_SERVER_PORT_DEV });
+    console.log(`Server listening on http://${env.EXPOSED_SERVER_HOST_DEV}:${env.EXPOSED_SERVER_PORT_DEV}`);
 
     // Apply WebSocket handler
     applyWSSHandler({

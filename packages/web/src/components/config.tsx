@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { Address, isAddress } from "tevm";
 import { z } from "zod";
 
-import { getChain, SUPPORTED_CHAINS } from "@core/chains";
+import { SUPPORTED_CHAINS } from "@core/chains";
 import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -36,7 +36,10 @@ export const Config = () => {
   });
 
   const onSubmit = (data: z.infer<typeof FormSchema>) => {
-    updateStore(getChain(data.chain), data.contractAddress);
+    const chain = SUPPORTED_CHAINS.find((chain) => chain.id.toString() === data.chain);
+    if (!chain) throw new Error("Chain not found");
+
+    updateStore(chain, data.contractAddress);
   };
 
   return (

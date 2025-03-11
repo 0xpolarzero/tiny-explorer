@@ -13,4 +13,6 @@ export default defineConfig({
       "@server": path.resolve(__dirname, "./../server/src"),
     },
   },
+  envPrefix: "EXPOSED_",
+  envDir: "./../../.env",
 });
