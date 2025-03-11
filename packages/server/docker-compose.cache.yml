@@ -2,15 +2,14 @@ version: "3.8"
 
 services:
   cache:
-    build:
-      context: .
-      dockerfile: Dockerfile.cache
+    image: docker.dragonflydb.io/dragonflydb/dragonfly
+    ports:
+      - "${DRAGONFLY_PORT:-6379}:${DRAGONFLY_PORT:-6379}"
     environment:
       - CACHE_PORT=${DRAGONFLY_PORT:-6379}
     healthcheck:
       test: ["CMD", "dragonfly-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    ports:
-      - "${DRAGONFLY_PORT:-6379}:${DRAGONFLY_PORT:-6379}"
+      interval: 5s
+      timeout: 3s
+      retries: 3
+    command: sh -c "dragonfly --port ${DRAGONFLY_PORT:-6379}"
