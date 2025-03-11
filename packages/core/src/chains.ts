@@ -1,7 +1,6 @@
-import { createMemoryClient, http } from "tevm";
 import { Common, mainnet } from "tevm/common";
 
-import { parseEnv } from "@bin/parse-env";
+import { parseEnv } from "./env";
 
 const env = parseEnv();
 
@@ -35,12 +34,6 @@ export const SUPPORTED_CHAINS = [
 ] as const satisfies Array<Chain>;
 
 /* ---------------------------------- UTILS --------------------------------- */
-export const createTevmClient = (chain: Chain) =>
-  createMemoryClient({
-    fork: { transport: http(chain.rpcUrl)({}) },
-    common: chain,
-  });
-
 export const getChain = (chainId: number | string): Chain => {
   const chain = SUPPORTED_CHAINS.find((chain) => chain.id.toString() === chainId.toString());
   if (!chain) throw new Error("Chain not supported");

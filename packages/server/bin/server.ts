@@ -4,12 +4,12 @@ import { fastifyTRPCPlugin } from "@trpc/server/adapters/fastify";
 import { applyWSSHandler } from "@trpc/server/adapters/ws";
 import fastify from "fastify";
 
-import { parseEnv } from "@bin/parse-env";
+import { validateEnv } from "@core/env";
 import { AppContext, AppRouter, createAppRouter } from "@/app/router";
 import { Service } from "@/service";
 
 // Validate environment variables
-export const env = parseEnv();
+export const env = validateEnv();
 
 // @see https://fastify.dev/docs/latest/
 export const server = fastify({

@@ -27,7 +27,28 @@ const commonSchema = z.object({
   MAINNET_BLOCKSCOUT_API_KEY: z.string().default(""),
 });
 
+/**
+ * Parses environment variables without validation or process exit Useful for client-side code that needs env defaults
+ * but not validation
+ */
 export function parseEnv<TSchema extends ZodTypeAny | undefined = undefined>(
+  schema?: TSchema,
+  env: Record<string, unknown> = {},
+): z.infer<TSchema extends ZodTypeAny ? ZodIntersection<typeof commonSchema, TSchema> : typeof commonSchema> {
+  const envSchema = schema !== undefined ? z.intersection(commonSchema, schema) : commonSchema;
+  try {
+    return envSchema.safeParse(env);
+  } catch (error) {
+    // Return defaults for any missing values
+    return envSchema.parse({});
+  }
+}
+
+/**
+ * Validates environment variables and exits process if invalid Used by server-side code that requires proper env
+ * configuration
+ */
+export function validateEnv<TSchema extends ZodTypeAny | undefined = undefined>(
   schema?: TSchema,
 ): z.infer<TSchema extends ZodTypeAny ? ZodIntersection<typeof commonSchema, TSchema> : typeof commonSchema> {
   const envSchema = schema !== undefined ? z.intersection(commonSchema, schema) : commonSchema;

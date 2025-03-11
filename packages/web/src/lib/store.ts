@@ -1,18 +1,18 @@
-import { Address, MemoryClient } from "tevm";
+import { Address } from "tevm";
 import { create } from "zustand";
 
-import { ChainOptions, createTevmClient } from "@/lib/providers";
+import { Chain, SUPPORTED_CHAINS } from "@core/chains";
 
 type State = {
-  client: MemoryClient | undefined;
+  chain: Chain;
   contractAddress: Address | undefined;
 
-  update: (chain: ChainOptions, contractAddress: Address) => void;
+  update: (chain: Chain, contractAddress: Address) => void;
 };
 
 export const useStore = create<State>()((set) => ({
-  client: undefined,
+  chain: SUPPORTED_CHAINS[0],
   contractAddress: undefined,
 
-  update: (chain: ChainOptions, contractAddress: Address) => set({ client: createTevmClient(chain), contractAddress }),
+  update: (chain: Chain, contractAddress: Address) => set({ chain, contractAddress }),
 }));

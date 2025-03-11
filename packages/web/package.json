@@ -27,7 +27,6 @@
     "tailwindcss": "^4.0.12",
     "tailwindcss-animate": "^1.0.7",
     "tevm": "1.0.0-next.128",
-    "viem": "^2.23.8",
     "zod": "^3.24.2",
     "zustand": "^5.0.3"
   },

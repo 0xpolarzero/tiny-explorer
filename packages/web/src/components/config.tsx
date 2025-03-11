@@ -6,14 +6,16 @@ import { useForm } from "react-hook-form";
 import { isAddress } from "tevm";
 import { z } from "zod";
 
+import { SUPPORTED_CHAINS } from "@core/chains";
 import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { SUPPORTED_CHAINS } from "@/lib/providers";
 import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
+
+console.log(SUPPORTED_CHAINS);
 
 const FormSchema = z.object({
   chain: z.string({
@@ -37,7 +39,7 @@ export const Config = () => {
   });
 
   const onSubmit = (data: z.infer<typeof FormSchema>) => {
-    const chain = SUPPORTED_CHAINS.find((option) => option.chain.id.toString() === data.chain);
+    const chain = SUPPORTED_CHAINS.find((chain) => chain.id.toString() === data.chain);
     if (!chain) return;
 
     updateStore(chain, data.contractAddress);
@@ -59,12 +61,12 @@ export const Config = () => {
                       variant="outline"
                       role="combobox"
                       className={cn(
-                        "w-[200px] justify-between cursor-pointer",
+                        "w-[200px] cursor-pointer justify-between",
                         !field.value && "text-muted-foreground",
                       )}
                     >
                       {field.value
-                        ? SUPPORTED_CHAINS.find((option) => option.chain.id.toString() === field.value)?.chain.name
+                        ? SUPPORTED_CHAINS.find((chain) => chain.id.toString() === field.value)?.name
                         : "Select chain"}
                       <ChevronsUpDown className="opacity-50" />
                     </Button>
@@ -76,19 +78,19 @@ export const Config = () => {
                     <CommandList>
                       <CommandEmpty>No chain found.</CommandEmpty>
                       <CommandGroup>
-                        {SUPPORTED_CHAINS.map((option) => (
+                        {SUPPORTED_CHAINS.map((chain) => (
                           <CommandItem
-                            value={option.chain.id.toString()}
-                            key={option.chain.id.toString()}
+                            value={chain.id.toString()}
+                            key={chain.id.toString()}
                             onSelect={() => {
-                              form.setValue("chain", option.chain.id.toString());
+                              form.setValue("chain", chain.id.toString());
                             }}
                           >
-                            {option.chain.name}
+                            {chain.name}
                             <Check
                               className={cn(
                                 "ml-auto",
-                                option.chain.id.toString() === field.value ? "opacity-100" : "opacity-0",
+                                chain.id.toString() === field.value ? "opacity-100" : "opacity-0",
                               )}
                             />
                           </CommandItem>

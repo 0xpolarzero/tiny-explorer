@@ -2,7 +2,8 @@
   "extends": "../../.tsconfigs/web.json",
   "compilerOptions": {
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@core/*": ["./../core/src/*"]
     }
   },
   "include": ["src"]

@@ -15,5 +15,5 @@
   "importOrderParserPlugins": ["typescript", "jsx", "decorators-legacy"],
   "importOrderCombineTypeAndValueImports": true,
   "plugins": ["@ianvs/prettier-plugin-sort-imports", "prettier-plugin-jsdoc", "prettier-plugin-tailwindcss"],
-  "importOrder": ["^react$", "<THIRD_PARTY_MODULES>", "", "^@/(.*)$", "", "^[./]"]
+  "importOrder": ["^react$", "<THIRD_PARTY_MODULES>", "", "^@core/(.*)$", "^@/(.*)$", "", "^[./]"]
 }

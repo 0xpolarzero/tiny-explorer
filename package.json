@@ -7,6 +7,7 @@
   },
   "license": "MIT",
   "scripts": {
+    "dev": "run-pty % pnpm --filter server start:cache % pnpm --filter server start:server % pnpm --filter web dev",
     "lint:fix": "prettier \"**/*.{js,ts}\" -w",
     "lint": "prettier \"**/*.{js,ts}\" --check"
   },

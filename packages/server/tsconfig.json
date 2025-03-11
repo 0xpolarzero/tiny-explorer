@@ -3,8 +3,10 @@
   "compilerOptions": {
     "paths": {
       "@/*": ["./src/*"],
-      "@bin/*": ["./bin/*"]
+      "@bin/*": ["./bin/*"],
+      "@core/*": ["./../core/src/*"]
     }
   },
-  "include": ["src", "bin", "__test__"]
+  "include": ["src", "bin"],
+  "references": [{ "path": "./../core" }]
 }
