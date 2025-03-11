@@ -1,8 +1,11 @@
+import { ExplainContractOutput, ExplainEventInput, GetContractOutput } from "@/lib/types";
+
 // TODO: when we switch to a local model using LM Studio, enfore json schema return type:
 // https://lmstudio.ai/docs/app/api/structured-output
 // TODO: see how to directly enforce return format as we can do in LM Studio
-export const PROMPTS = {
-  explainContract: (input: string) => `<|begin_of_text|><|start_header_id|>user<|end_header_id|>
+
+export const getPrompt = {
+  explainContract: (input: GetContractOutput) => `<|begin_of_text|><|start_header_id|>user<|end_header_id|>
 
 # Instructions
 
@@ -107,13 +110,20 @@ Example output:
 
 # Input
 
-${input}
+${JSON.stringify(input)}
 
 <|eot_id|><|start_header_id|>assistant<|end_header_id|>
 
 `,
 
-  explainEvent: (input: string) => `<|begin_of_text|><|start_header_id|>user<|end_header_id|>
+  /* ------------------------------ EXPLAIN EVENT ----------------------------- */
+  explainEvent: ({
+    event,
+    eventInfo,
+  }: {
+    event: ExplainEventInput["event"];
+    eventInfo: ExplainContractOutput["events"][number];
+  }) => `<|begin_of_text|><|start_header_id|>user<|end_header_id|>
 
 # Instructions
 
@@ -212,7 +222,7 @@ Example output:
 
 # Input
 
-${input}
+${JSON.stringify({ event, eventInfo })}
 
 <|eot_id|><|start_header_id|>assistant<|end_header_id|>
 `,
