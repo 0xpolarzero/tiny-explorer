@@ -1,6 +1,6 @@
 import { createClient } from "redis";
 
-import { debug } from "@/app/debug";
+import { debug } from "@server/app/debug";
 
 export type CacheServiceOptions = {
   port: number;

@@ -1,2 +1,2 @@
-export * from "@/app/router";
-export * from "@/app/client";
+export * from "@server/app/router";
+export * from "@server/app/client";

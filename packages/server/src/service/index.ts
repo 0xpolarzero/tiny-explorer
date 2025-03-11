@@ -1,9 +1,9 @@
-import { debug } from "@/app/debug";
-import { ExplainContractInput, ExplainContractOutput, ExplainEventInput, ExplainEventOutput } from "@/lib/types";
-import { AuthService, AuthServiceOptions } from "@/service/auth";
-import { CacheService, CacheServiceOptions } from "@/service/cache";
-import { LLMService, LLMServiceOptions } from "@/service/llm";
-import { WhatsAbiService } from "@/service/whatsabi";
+import { debug } from "@server/app/debug";
+import { ExplainContractInput, ExplainContractOutput, ExplainEventInput, ExplainEventOutput } from "@server/lib/types";
+import { AuthService, AuthServiceOptions } from "@server/service/auth";
+import { CacheService, CacheServiceOptions } from "@server/service/cache";
+import { LLMService, LLMServiceOptions } from "@server/service/llm";
+import { WhatsAbiService } from "@server/service/whatsabi";
 
 /** Service class handling LLM requests and responses */
 export class Service {

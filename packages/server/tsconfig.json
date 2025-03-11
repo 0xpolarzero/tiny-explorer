@@ -2,9 +2,9 @@
   "extends": "../../.tsconfigs/node.json",
   "compilerOptions": {
     "paths": {
-      "@/*": ["./src/*"],
-      "@bin/*": ["./bin/*"],
-      "@core": ["./../core/src/index.ts"]
+      "@server/*": ["./src/*"],
+      "@server-bin/*": ["./bin/*"],
+      "@core/*": ["./../core/src/*"]
     }
   },
   "include": ["src", "bin"]

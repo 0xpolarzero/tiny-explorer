@@ -1,4 +1,4 @@
-import { ExplainContractOutput, ExplainEventInput, GetContractOutput } from "@/lib/types";
+import { ExplainContractOutput, ExplainEventInput, GetContractOutput } from "@server/lib/types";
 
 // TODO: when we switch to a local model using LM Studio, enfore json schema return type:
 // https://lmstudio.ai/docs/app/api/structured-output

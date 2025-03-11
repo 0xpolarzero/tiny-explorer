@@ -7,7 +7,7 @@ import {
 } from "@trpc/client";
 import { createWSClient, wsLink } from "@trpc/client/links/wsLink";
 
-import type { AppRouter } from "@/app/router";
+import type { AppRouter } from "@server/app/router";
 
 type CreateClientOptions = {
   httpUrl: string;

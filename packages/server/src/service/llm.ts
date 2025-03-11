@@ -1,7 +1,7 @@
 import { TextGeneration } from "deepinfra";
 
-import { getPrompt } from "@/lib/prompts";
-import { ExplainContractOutput, ExplainEventInput, ExplainEventOutput, GetContractOutput } from "@/lib/types";
+import { getPrompt } from "@server/lib/prompts";
+import { ExplainContractOutput, ExplainEventInput, ExplainEventOutput, GetContractOutput } from "@server/lib/types";
 
 export type LLMServiceOptions = {
   modelUrl: string;

@@ -3,10 +3,10 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { useForm } from "react-hook-form";
-import { isAddress } from "tevm";
+import { Address, isAddress } from "tevm";
 import { z } from "zod";
 
-import { SUPPORTED_CHAINS } from "@core";
+import { getChain, SUPPORTED_CHAINS } from "@core/chains";
 import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -14,8 +14,6 @@ import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
-
-console.log(SUPPORTED_CHAINS);
 
 const FormSchema = z.object({
   chain: z.string({
@@ -27,22 +25,18 @@ const FormSchema = z.object({
 });
 
 export const Config = () => {
-  const updateStore = useStore((state) => state.update);
+  const { chainId, contractAddress, update: updateStore } = useStore();
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      chain: "",
-      // @ts-expect-error - Type '""' is not assignable to type '`0x${string}`'
-      contractAddress: "",
+      chain: chainId.toString(),
+      contractAddress: contractAddress ?? ("" as Address),
     },
   });
 
   const onSubmit = (data: z.infer<typeof FormSchema>) => {
-    const chain = SUPPORTED_CHAINS.find((chain) => chain.id.toString() === data.chain);
-    if (!chain) return;
-
-    updateStore(chain, data.contractAddress);
+    updateStore(getChain(data.chain), data.contractAddress);
   };
 
   return (

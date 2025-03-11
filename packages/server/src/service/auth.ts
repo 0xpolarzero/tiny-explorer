@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { nanoid } from "nanoid";
 
-import { CacheService } from "@/service/cache";
+import { CacheService } from "@server/service/cache";
 
 export const COOKIE_NAME = "session_id";
 

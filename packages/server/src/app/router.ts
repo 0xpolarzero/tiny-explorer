@@ -2,9 +2,9 @@ import { initTRPC } from "@trpc/server";
 import { CreateFastifyContextOptions } from "@trpc/server/adapters/fastify";
 import { z } from "zod";
 
-import { ExplainContractInput } from "@/lib/types";
-import { Service } from "@/service";
-import { COOKIE_NAME } from "@/service/auth";
+import { ExplainContractInput } from "@server/lib/types";
+import { Service } from "@server/service";
+import { COOKIE_NAME } from "@server/service/auth";
 
 export type AppContext = {
   service: Service;

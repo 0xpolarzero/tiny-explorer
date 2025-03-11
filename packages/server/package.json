@@ -4,6 +4,10 @@
   "description": "A tRPC server with protected API endpoints for making API requests and interacting with a LLM.",
   "license": "MIT",
   "type": "module",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "scripts": {
     "start:cache": "chmod +x ./bin/start-cache.sh && ./bin/start-cache.sh",
     "start:cache:ci": "chmod +x ./bin/start-cache.sh && ./bin/start-cache.sh --ci",
