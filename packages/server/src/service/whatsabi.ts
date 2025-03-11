@@ -48,27 +48,24 @@ export class WhatsAbiService {
       });
 
       const sources = await result.contractResult?.getSources?.();
-      console.log(result);
 
       // Keep content of contracts we need to explain and direct explanation for known ones
-      const relevantSources = sources?.filter((s) => !s.path || !ignoredSourcePaths.includes(s.path));
-      const refinedSources = relevantSources?.map((s) => {
-        const knownContract = KNOWN_CONTRACTS.find((k) => k.path === s.path);
-        if (knownContract) {
-          return {
-            name: knownContract.name,
-            path: s.path,
-            content: s.content,
-            explanation: knownContract.explanation,
-          };
-        }
+      const refinedSources = sources
+        ?.filter((s) => !ignoredSourcePaths.some((p) => s.path?.includes(p)))
+        .map((s) => {
+          const knownContract = KNOWN_CONTRACTS.find((k) => s.path?.includes(k.path));
+          if (knownContract) {
+            return {
+              name: knownContract.name,
+              explanation: knownContract.explanation,
+            };
+          }
 
-        return {
-          name: s.content.match(/contract (\w+) {/)?.[1] ?? "",
-          path: s.path,
-          content: s.content,
-        };
-      });
+          return {
+            name: grabContractName(s.content),
+            content: s.content,
+          };
+        });
 
       debug("Retrieved contract details", chainId, contractAddress);
       return {
@@ -82,3 +79,6 @@ export class WhatsAbiService {
     }
   }
 }
+
+const grabContractName = (content: string) =>
+  content.match(/(?:contract|abstract\s+contract|interface)\s+(\w+)(?:\s+is\s+[\w\s,]*)?{/)?.[1] ?? "";

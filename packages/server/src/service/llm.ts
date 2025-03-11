@@ -23,6 +23,7 @@ export class LLMService {
 
   async explainContract(input: GetContractOutput): Promise<ExplainContractOutput> {
     const formattedInput = PROMPTS.explainContract(JSON.stringify(input));
+    console.log(formattedInput);
 
     const result = await this.prompt(formattedInput);
     return JSON.parse(result);
@@ -37,6 +38,6 @@ export class LLMService {
     });
 
     const text = res.results[0]?.generated_text ?? "";
-    return text ?? "";
+    return text.split("```json")[1]?.split("```")[0] ?? "";
   }
 }

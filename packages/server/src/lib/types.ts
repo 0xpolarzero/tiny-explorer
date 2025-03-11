@@ -4,12 +4,16 @@ export type GetContractInput = ExplainContractInput;
 export type GetContractOutput = {
   abi: abi.ABI;
   name?: string;
-  sources?: Array<{
-    name: string;
-    content: string;
-    path?: string;
-    explanation?: string;
-  }>;
+  sources?: Array<
+    | {
+        name: string;
+        content: string;
+      }
+    | {
+        name: string;
+        explanation: string;
+      }
+  >;
 };
 
 export type ExplainContractInput = {

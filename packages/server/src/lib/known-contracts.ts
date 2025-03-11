@@ -232,6 +232,12 @@ export const KNOWN_CONTRACTS = [
       "A standard implementation of the ERC1155 multi-token standard that supports managing multiple token types in one contract.",
   },
   {
+    name: "IERC1155",
+    path: "@openzeppelin/contracts/token/ERC1155/IERC1155.sol",
+    explanation:
+      "Defines the interface for the ERC1155 multi-token standard, allowing for standard interactions with ERC1155 tokens.",
+  },
+  {
     name: "ERC1155Supply",
     path: "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol",
     explanation: "Extends ERC1155 by tracking the total supply for each token ID.",
