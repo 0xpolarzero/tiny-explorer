@@ -7,6 +7,5 @@
       "@core/*": ["./../core/src/*"]
     }
   },
-  "include": ["src", "bin"],
-  "references": [{ "path": "./../core" }]
+  "include": ["src", "bin"]
 }
