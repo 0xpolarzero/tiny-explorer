@@ -7,11 +7,12 @@ import { useStore } from "@/lib/store";
 
 export const ContractDetails = () => {
   const { chainId, contractAddress } = useStore();
-  const { explainContract } = useServer();
+  const { explainContract, explainContractStream } = useServer();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
   const [output, setOutput] = useState<ExplainContractOutput | null>(null);
+  const [text, setText] = useState("");
 
   const fetchContractDetails = async () => {
     if (chainId && contractAddress) {
@@ -19,8 +20,23 @@ export const ContractDetails = () => {
         setLoading(true);
         setError(false);
 
-        const res = await explainContract.mutate({ chainId: chainId.toString(), contractAddress });
-        setOutput(res);
+        // const res = await explainContract.mutate({ chainId: chainId.toString(), contractAddress });
+        const sub = explainContractStream.subscribe(
+          { chainId: chainId.toString(), contractAddress },
+          {
+            onData: (text) => {
+              console.log(text);
+              setText((prev) => prev + text);
+            },
+            onError: (error) => {
+              console.error(error);
+            },
+            onComplete: () => {
+              console.log("Complete");
+            },
+          },
+        );
+        // setOutput(res);
       } catch (e) {
         setError(true);
 
@@ -38,18 +54,18 @@ export const ContractDetails = () => {
     fetchContractDetails();
   }, [chainId, contractAddress]);
 
-  if (loading) return <div>Loading...</div>;
   if (error) return <div>Error loading contract details</div>;
-  if (!output) return <div>No output</div>;
+  // if (!output) return <div>No output</div>;
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="text-lg font-bold">{output.overview}</div>
+      {/* <div className="text-lg font-bold">{output.overview}</div>
       <div className="flex flex-col gap-2">
         {output.events.map((event) => (
           <div key={event.name}>{event.name}</div>
         ))}
-      </div>
+      </div> */}
+      <div className="text-xs">{text}</div>
     </div>
   );
 };

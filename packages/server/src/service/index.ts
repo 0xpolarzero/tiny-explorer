@@ -83,6 +83,34 @@ export class Service {
     }
   }
 
+  // TODO: experimenting
+  async explainContractStream(input: ExplainContractInput, onCompletion: (text: string) => void): Promise<void> {
+    const cacheKey = `contract:${input.chainId}:${input.contractAddress}`;
+
+    try {
+      const cached = await this.cache.get<ExplainContractOutput>(cacheKey);
+      if (cached) {
+        debug("Cache hit for key:", cacheKey);
+        onCompletion(JSON.stringify(cached));
+        return;
+      }
+    } catch (error) {
+      debug("Error in explainContractStream:", error);
+    }
+
+    const contractDetails = await this.whatsabi.getContract(input);
+    await this.llm.explainContractStream(contractDetails, onCompletion, (text) => {
+      this.cache.set(cacheKey, JSON.parse(text));
+    });
+  }
+
+  async explainEventStream(
+    input: ExplainContractOutput & ExplainEventInput,
+    onCompletion: (text: string) => void,
+  ): Promise<void> {
+    await this.llm.explainEventStream(input, onCompletion);
+  }
+
   // Add auth methods
   createSession() {
     return this.auth.createSession();

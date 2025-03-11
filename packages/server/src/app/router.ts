@@ -1,5 +1,6 @@
 import { initTRPC } from "@trpc/server";
 import { CreateFastifyContextOptions } from "@trpc/server/adapters/fastify";
+import { observable } from "@trpc/server/observable";
 import { z } from "zod";
 
 import { ExplainContractInput } from "@server/lib/types";
@@ -75,6 +76,25 @@ export function createAppRouter() {
       )
       .mutation(({ ctx, input }) => {
         return ctx.service.explainContract(input);
+      }),
+
+    // TODO: Use protectedProcedure when we can handle cookies with websockets
+    explainContractStream: t.procedure
+      .input(
+        z.object({
+          chainId: z.string(),
+          contractAddress: z.string(),
+        }) satisfies z.ZodType<ExplainContractInput>,
+      )
+      .subscription(({ ctx, input }) => {
+        console.log("Subscribing...");
+        return observable<string>((emit) => {
+          const onCompletion = (text: string) => {
+            emit.next(text);
+          };
+
+          ctx.service.explainContractStream(input, onCompletion);
+        });
       }),
   });
 }

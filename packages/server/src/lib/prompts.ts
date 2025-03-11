@@ -4,12 +4,8 @@ import { ExplainContractOutput, ExplainEventInput, GetContractOutput } from "@se
 // https://lmstudio.ai/docs/app/api/structured-output
 // TODO: see how to directly enforce return format as we can do in LM Studio
 
-export const getPrompt = {
-  explainContract: (input: GetContractOutput) => `<|begin_of_text|><|start_header_id|>user<|end_header_id|>
-
-# Instructions
-
-You are a smart contract analyzer. Given a contract's ABI and optional source code, provide a comprehensive analysis in JSON format with two fields:
+export const SYSTEM_PROMPTS = {
+  explainContract: `You are a smart contract analyzer. Given a contract's ABI and optional source code, provide a comprehensive analysis in JSON format with two fields:
 1. "overview": A clear, technical explanation of the contract's purpose, functionality, and architecture
 2. "events": An array of objects describing each event, with each object containing:
    - "signature": Full event signature (e.g., "Transfer(address,address,uint256)")
@@ -106,28 +102,10 @@ Example output:
       "Batch operations in multi-transfers"
     ]
   }]
-}
-
-# Input
-
-${JSON.stringify(input)}
-
-<|eot_id|><|start_header_id|>assistant<|end_header_id|>
-
-`,
+}`,
 
   /* ------------------------------ EXPLAIN EVENT ----------------------------- */
-  explainEvent: ({
-    event,
-    eventInfo,
-  }: {
-    event: ExplainEventInput["event"];
-    eventInfo: ExplainContractOutput["events"][number];
-  }) => `<|begin_of_text|><|start_header_id|>user<|end_header_id|>
-
-# Instructions
-
-You are a smart contract event analyzer. Given an event's occurrence details and its definition, explain what happened in JSON format with two fields:
+  explainEvent: `You are a smart contract event analyzer. Given an event's occurrence details and its definition, explain what happened in JSON format with two fields:
 1. "summary": A concise, human-readable explanation of what this event represents
 2. "details": A technical breakdown including:
    - Exact values and meaning of all parameters
@@ -218,12 +196,5 @@ Example output:
     "relatedActions": "Direct transfer call, no additional approvals or hooks triggered",
     "businessImpact": "Standard token movement between addresses, no special implications"
   }
-}
-
-# Input
-
-${JSON.stringify({ event, eventInfo })}
-
-<|eot_id|><|start_header_id|>assistant<|end_header_id|>
-`,
+}`,
 };
