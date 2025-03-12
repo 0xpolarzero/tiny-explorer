@@ -49,12 +49,12 @@ EXPOSED_NODE_ENV=local
 SERVER_HOST=0.0.0.0
 SERVER_PORT=8888
 FRONTEND_URL=http://localhost:5173
-COOKIE_SECRET=your-secure-cookie-secret
+COOKIE_SECRET=your-secure-cookie-secret-min-32-chars
 SESSION_TTL=86400
 
 # LLM
 OPENROUTER_API_KEY=your-openrouter-api-key
-OPENROUTER_MODEL_NAME=anthropic/claude-3-opus-20240229
+OPENROUTER_MODEL_NAME=qwen/qwq-32b
 
 # Cache
 DRAGONFLY_HOST=localhost
@@ -68,20 +68,14 @@ ETHEREUM_EXPLORER_API_KEY=your-etherscan-api-key
 
 ### Running Locally
 
-To run the server locally with Redis cache:
+To run the server locally with Dragonfly cache:
 
 ```bash
-# Start Redis cache
+# Start Dragonfly cache
 pnpm start:cache
 
 # Start the server
 pnpm start:server
-```
-
-Or run both together:
-
-```bash
-pnpm dev
 ```
 
 ### Docker Deployment
@@ -91,10 +85,17 @@ The server can be deployed using Docker:
 ```bash
 # Build the images
 docker build -f Dockerfile.server -t evm-ai-indexer-server .
-docker build -f Dockerfile.llm -t evm-ai-indexer-llm .
+docker build -f Dockerfile.llm -t evm-ai-indexer-llm . # not yet using a local LLM
 
 # Run with Docker Compose
 docker-compose up -d
+```
+
+Or use the packages published to the GitHub Container Registry:
+
+```bash
+docker pull ghcr.io/0xpolarzero/evm-ai-indexer-server:latest
+docker pull ghcr.io/0xpolarzero/evm-ai-indexer-llm:latest
 ```
 
 ## Features

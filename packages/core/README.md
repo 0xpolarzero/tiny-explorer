@@ -43,10 +43,10 @@ pnpm install
 The core package handles environment variable validation and typing for both server and web environments:
 
 ```typescript
-import { parseEnv } from "core";
+import { parseEnv } from "@core/env";
 
 // Get typed environment variables
-const env = parseEnv();
+const env = parseEnv("server"); // or "web"
 
 // Access typed variables
 console.log(env.SERVER_PORT);
@@ -57,10 +57,10 @@ console.log(env.SERVER_PORT);
 Access chain configuration data for supported EVM networks:
 
 ```typescript
-import { getChainConfig, SUPPORTED_CHAINS } from "core";
+import { getChainConfig, SUPPORTED_CHAINS } from "@core/chains";
 
 // Get configuration for a specific chain
-const ethConfig = getChainConfig("ethereum");
+const ethConfig = getChainConfig({ chainId: "1" }); // Ethereum mainnet
 
 // List all supported chains
 console.log(SUPPORTED_CHAINS);
@@ -71,17 +71,10 @@ console.log(SUPPORTED_CHAINS);
 The package provides schemas and types for LLM interactions:
 
 ```typescript
-import { EXPLAIN_CONTRACT, ExplainContractOutput } from "core/llm";
+import { EXPLAIN_CONTRACT, ExplainContractOutput } from "@core/llm";
 
 // Access system prompts for LLM
 const systemPrompt = EXPLAIN_CONTRACT.systemPrompt;
-
-// Type your LLM responses
-const response: ExplainContractOutput = {
-  contractName: "Example",
-  description: "An example contract",
-  // ...other fields
-};
 ```
 
 ## Structure

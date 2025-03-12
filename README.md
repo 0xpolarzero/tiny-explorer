@@ -36,9 +36,9 @@ EVM AI Indexer is a system that combines blockchain interaction with AI language
 
 ## Prerequisites
 
-- [Node.js](https://nodejs.org/) (v18 or higher)
-- [pnpm](https://pnpm.io/) (v8 or higher)
-- [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/) (for containerized deployment)
+- [Node.js](https://nodejs.org/) (tested with v23.8.0)
+- [pnpm](https://pnpm.io/) (tested with v9.15.6)
+- [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/) (for containerized deployment); or you can use [OrbStack](https://www.orbstack.dev/) on Mac
 - [Foundry](https://getfoundry.sh/) (for smart contract development)
 
 ## Installation
@@ -75,17 +75,9 @@ pnpm dev
 
 This will start:
 
-- Redis cache
+- Redis cache (Dragonfly)
 - tRPC server
 - React frontend
-
-### Docker
-
-For production deployment, use Docker:
-
-```bash
-docker-compose up -d
-```
 
 ### Configuration
 
@@ -114,7 +106,7 @@ The project is organized as a monorepo with the following packages:
 4. **Event Monitoring**: System listens for contract events in real-time
 5. **Explanation**: Events are explained to the user as they occur
 
-## Roadmap
+## TODO
 
 Future development plans:
 

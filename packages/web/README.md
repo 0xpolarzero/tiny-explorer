@@ -42,7 +42,7 @@ Create a `.env` file in the root directory with the following variables:
 
 ```
 # Server connection
-EXPOSED_SERVER_URL=http://localhost:8888
+EXPOSED_SERVER_PROD_URL=http://localhost:8888 # only required for production
 ```
 
 ### Development
