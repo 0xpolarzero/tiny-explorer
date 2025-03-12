@@ -1,54 +1,136 @@
-# React + TypeScript + Vite
+# Web
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**A React application providing a user interface for analyzing smart contracts with AI-powered explanations.**
 
-Currently, two official plugins are available:
+The web package implements the frontend for the EVM AI Indexer, allowing users to submit contract addresses and view AI-generated explanations of their functionality.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Table of contents
 
-## Expanding the ESLint configuration
+- [Overview](#overview)
+- [Installation](#installation)
+- [Usage](#usage)
+  - [Environment Setup](#environment-setup)
+  - [Development](#development)
+  - [Building for Production](#building-for-production)
+- [Features](#features)
+  - [Contract Analysis](#contract-analysis)
+  - [Blockchain Support](#blockchain-support)
+  - [Real-time Streaming](#real-time-streaming)
+  - [User Interface](#user-interface)
+- [Structure](#structure)
+- [Contributing](#contributing)
+- [License](#license)
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Overview
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+The web package provides a React-based user interface for interacting with the EVM AI Indexer. It allows users to enter contract addresses, select blockchain networks, and receive AI-generated analyses of smart contracts including their functionality, events, and other details.
+
+## Installation
+
+This package is part of the EVM AI Indexer monorepo. To install it:
+
+```bash
+# From the repository root
+pnpm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Usage
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Environment Setup
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
+Create a `.env` file in the root directory with the following variables:
+
 ```
+# Server connection
+EXPOSED_SERVER_URL=http://localhost:8888
+```
+
+### Development
+
+To run the development server:
+
+```bash
+pnpm dev
+```
+
+This will start a Vite development server with hot module replacement (HMR).
+
+### Building for Production
+
+To build the application for production:
+
+```bash
+pnpm build
+```
+
+To preview the production build:
+
+```bash
+pnpm preview
+```
+
+## Features
+
+### Contract Analysis
+
+The application fetches and displays detailed contract information:
+
+- Contract name and description
+- Functions and their descriptions
+- Events and their parameters
+- State variables
+- Inheritance structure
+
+### Blockchain Support
+
+Support for multiple EVM-compatible blockchains:
+
+- Ethereum Mainnet (with more chains coming soon)
+- Configurable RPC endpoints through the core package
+- Blockchain explorer integration for verification
+
+### Real-time Streaming
+
+Real-time updates as contract analysis is generated:
+
+- WebSocket subscription for streaming data
+- Live updates as the LLM analyzes the contract
+- Progress indicators during analysis
+
+### User Interface
+
+Modern, responsive UI components:
+
+- Clean, intuitive interface built with React
+- Form validation for contract addresses
+- Responsive design for various screen sizes
+- Component library with consistent styling
+
+## Structure
+
+```
+src/
+├── assets/           # Static assets
+├── components/       # UI components
+│   ├── config.tsx    # Chain and contract selection
+│   ├── contract-details.tsx # Contract analysis display
+│   ├── ui/           # Reusable UI components
+│   └── wrapper.tsx   # Authentication wrapper
+├── hooks/            # Custom React hooks
+│   └── use-server.ts # Server connection hook
+├── lib/              # Utilities and helpers
+│   ├── store.ts      # State management
+│   └── utils.ts      # Helper functions
+├── providers/        # React context providers
+│   └── server-provider.tsx # tRPC client provider
+├── App.tsx           # Main application component
+└── main.tsx          # Application entry point
+```
+
+## Contributing
+
+If you wish to contribute to this package, please follow the contribution guidelines in the root repository README.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](../../LICENSE) file for details.
