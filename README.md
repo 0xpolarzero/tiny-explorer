@@ -1,6 +1,6 @@
 # EVM AI Indexer
 
-**A system for analyzing and explaining contract events on EVM chains using a LLM for more friendly UX.**
+**A user-friendly interface for explaining contracts and events in real time on EVM chains using AI.**
 
 ## Table of contents
 
