@@ -1,8 +1,6 @@
 # EVM AI Indexer
 
-**A system for analyzing and explaining smart contracts on EVM blockchains using AI.**
-
-EVM AI Indexer provides developers and users with intuitive explanations of smart contract functionality and events, making blockchain interactions more accessible.
+**A system for analyzing and explaining contract events on EVM chains using a LLM for more friendly UX.**
 
 ## Table of contents
 
@@ -23,7 +21,7 @@ EVM AI Indexer provides developers and users with intuitive explanations of smar
 
 ## Overview
 
-EVM AI Indexer is a system that combines blockchain interaction with AI language models to provide intuitive, human-readable explanations of smart contracts and their events. By analyzing contract source code, ABIs, and event data, the system helps users understand contract functionality without requiring extensive blockchain or Solidity knowledge.
+EVM AI Indexer is a system that combines blockchain interaction with AI language models to provide intuitive, human-readable explanations of smart contracts and their events. By analyzing contract source code, ABIs, and event data, the system helps users understand contract functionality without requiring extensive blockchain or Solidity knowledge, and explains events as they occur.
 
 ## Features
 
