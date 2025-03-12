@@ -53,8 +53,8 @@ export class LLMService {
     input: GetContractOutput,
     onCompletion: (obj: Partial<ExplainContractOutput>) => void,
     onFinish: (obj: ExplainContractOutput) => void,
-  ): Promise<void> {
-    await this.stream(
+  ): Promise<() => void> {
+    return await this.stream(
       EXPLAIN_CONTRACT.systemPrompt,
       EXPLAIN_CONTRACT.outputSchema,
       JSON.stringify(input),
@@ -85,22 +85,42 @@ export class LLMService {
     input: string,
     onCompletion: (obj: any) => void,
     onFinish?: (obj: z.infer<S>) => void,
-  ): Promise<void> {
+  ): Promise<() => void> {
+    const abortController = new AbortController();
+
     try {
       const { partialObjectStream, object: objectPromise } = streamObject({
         model: this.openrouter(this.options.model),
         system: systemPrompt,
         prompt: input,
         schema,
+        abortSignal: abortController.signal,
       });
 
-      for await (const obj of partialObjectStream) onCompletion(obj);
+      // Process the stream in the background
+      (async () => {
+        try {
+          for await (const obj of partialObjectStream) onCompletion(obj);
 
-      const object = await objectPromise;
-      onFinish?.(object);
-    } catch (e) {
-      console.error(e);
-      throw e;
+          if (onFinish) {
+            const object = await objectPromise;
+            onFinish(object);
+          }
+        } catch (err) {
+          if (abortController.signal.aborted) {
+            console.log("Stream aborted");
+          } else {
+            console.error(err);
+          }
+        }
+      })();
+
+      return () => {
+        abortController.abort();
+      };
+    } catch (err) {
+      console.error(err);
+      throw err;
     }
   }
 }

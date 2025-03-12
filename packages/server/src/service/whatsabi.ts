@@ -49,10 +49,6 @@ export class WhatsAbiService {
         abiLoader,
         followProxies: true,
         loadContractResult: true,
-        onError: (error) => {
-          console.error(error);
-          throw error;
-        },
       });
 
       const sources = await result.contractResult?.getSources?.();
@@ -81,9 +77,9 @@ export class WhatsAbiService {
         name: result.contractResult?.name ?? undefined,
         sources: refinedSources,
       };
-    } catch (error) {
-      debug("Error in getContract", chainId, contractAddress, error);
-      throw error;
+    } catch (err) {
+      debug("Error in getContract", chainId, contractAddress, err);
+      throw err;
     }
   }
 }

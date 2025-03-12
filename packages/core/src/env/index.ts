@@ -18,14 +18,14 @@ export function parseEnv<T extends "web" | "server" = "server">(
     // @ts-expect-error Property env doesn't exist in import.meta
     const envSource = type === "web" ? import.meta.env : process.env;
     return envSchema.parse(envSource) as any;
-  } catch (error) {
-    if (error instanceof ZodError) {
+  } catch (err) {
+    if (err instanceof ZodError) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { _errors, ...invalidEnvVars } = error.format();
+      const { _errors, ...invalidEnvVars } = err.format();
       console.error(`\nMissing or invalid environment variables:\n\n  ${Object.keys(invalidEnvVars).join("\n  ")}\n`);
       process.exit(1);
     }
-    throw error;
+    throw err;
   }
 }
 

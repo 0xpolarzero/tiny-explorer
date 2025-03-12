@@ -1,4 +1,4 @@
-import { initTRPC } from "@trpc/server";
+import { initTRPC, TRPCError } from "@trpc/server";
 import { CreateFastifyContextOptions } from "@trpc/server/adapters/fastify";
 import { observable } from "@trpc/server/observable";
 import { z } from "zod";
@@ -13,6 +13,8 @@ export type AppContext = {
   req: CreateFastifyContextOptions["req"];
   res: CreateFastifyContextOptions["res"];
 };
+
+let activeSubscriptions = 0;
 
 /**
  * Creates and configures the main tRPC router with all API endpoints.
@@ -74,8 +76,8 @@ export function createAppRouter() {
           contractAddress: z.string(),
         }) satisfies z.ZodType<ExplainContractInput>,
       )
-      .mutation(({ ctx, input }) => {
-        return ctx.service.explainContract(input);
+      .mutation(async ({ ctx, input }) => {
+        return await ctx.service.explainContract(input);
       }),
 
     // TODO: Use protectedProcedure when we can handle cookies with websockets
@@ -87,12 +89,68 @@ export function createAppRouter() {
         }) satisfies z.ZodType<ExplainContractInput>,
       )
       .subscription(({ ctx, input }) => {
+        console.log("Starting subscription", { chainId: input.chainId, contractAddress: input.contractAddress });
+        activeSubscriptions++;
+        console.log("Active subscriptions:", activeSubscriptions);
+
         return observable<Partial<ExplainContractOutput>>((emit) => {
-          const onCompletion = (obj: Partial<ExplainContractOutput>) => {
-            emit.next(obj);
+          // Track if the subscription is still active
+          let isActive = true;
+          let cleanupFn: (() => void) | null = null;
+
+          // Create a cleanup function that will be called when the client disconnects
+          const cleanup = () => {
+            console.log("Cleaning up subscription");
+            isActive = false;
           };
 
-          ctx.service.explainContractStream(input, onCompletion);
+          // Start the streaming process
+          ctx.service
+            .explainContractStream(input, {
+              onCompletion: (obj: Partial<ExplainContractOutput>) => {
+                if (isActive) emit.next(obj);
+              },
+              onFinish: () => {
+                if (isActive) emit.complete();
+              },
+              onError: (err: Error) => {
+                if (isActive) {
+                  console.error("Subscription error:", err);
+                  emit.error(
+                    err instanceof TRPCError
+                      ? err
+                      : new TRPCError({
+                          code: "INTERNAL_SERVER_ERROR",
+                          message: err.message,
+                        }),
+                  );
+                }
+              },
+            })
+            .then((cleanup) => {
+              // Store the cleanup function for later use
+              cleanupFn = cleanup;
+            })
+            .catch((err) => {
+              console.error("Failed to start stream:", err);
+              if (isActive) {
+                emit.error(
+                  err instanceof TRPCError
+                    ? err
+                    : new TRPCError({
+                        code: "INTERNAL_SERVER_ERROR",
+                        message: err.message,
+                      }),
+                );
+              }
+            });
+
+          // Return a cleanup function that will be called when the client disconnects
+          return () => {
+            console.log("Client disconnected");
+            cleanup();
+            if (cleanupFn) cleanupFn();
+          };
         });
       }),
   });

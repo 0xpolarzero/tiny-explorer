@@ -1,8 +1,9 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { Address, isAddress } from "tevm";
 import { z } from "zod";
 
@@ -12,8 +13,10 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { useStore } from "@/lib/store";
+import { useSearch } from "@/hooks/use-search";
 import { cn } from "@/lib/utils";
+import { useConfigStore } from "@/store/config";
+import { useSearchStore } from "@/store/search";
 
 const FormSchema = z.object({
   chain: z.string({
@@ -25,7 +28,9 @@ const FormSchema = z.object({
 });
 
 export const Config = () => {
-  const { chainId, contractAddress, update: updateStore } = useStore();
+  const { chainId, contractAddress, update: updateStore } = useConfigStore();
+  const { fetchContractDetails } = useSearch();
+  const { loading } = useSearchStore();
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -40,6 +45,12 @@ export const Config = () => {
     if (!chain) throw new Error("Chain not found");
 
     updateStore(chain, data.contractAddress);
+    fetchContractDetails({
+      onError: (err) =>
+        toast.error("Failed to explain contract", {
+          description: err.message,
+        }),
+    });
   };
 
   return (
@@ -97,7 +108,7 @@ export const Config = () => {
                   </Command>
                 </PopoverContent>
               </Popover>
-              <FormDescription>The chain the contract is deployed on.</FormDescription>
+              <FormDescription className="text-xs">The chain the contract is deployed on.</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -111,13 +122,13 @@ export const Config = () => {
               <FormControl>
                 <Input className="text-sm" placeholder="0x..." {...field} />
               </FormControl>
-              <FormDescription>The address of the contract you want to listen to.</FormDescription>
+              <FormDescription className="text-xs">The address of the contract you want to listen to.</FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button className="cursor-pointer md:-mt-1.5" type="submit">
-          Search
+        <Button className="cursor-pointer md:-mt-1.5" type="submit" disabled={loading}>
+          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Search"}
         </Button>
       </form>
     </Form>
