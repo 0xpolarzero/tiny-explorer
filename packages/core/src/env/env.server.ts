@@ -9,9 +9,8 @@ export const serverEnvSchema = z.object({
   SESSION_TTL: z.number().default(60 * 60 * 24), // 24 hours in seconds
 
   // LLM (TODO: update to use LM Studio)
-  //   DEEPINFRA_MODEL_URL: z.string().default("https://api.deepinfra.com/v1/inference/Qwen/QwQ-32B"),
-  DEEPINFRA_MODEL_URL: z.string().default("Qwen/QwQ-32B"),
-  DEEPINFRA_API_KEY: z.string(),
+  OPENROUTER_API_KEY: z.string(),
+  OPENROUTER_MODEL_NAME: z.string().default("qwen/qwq-32b:free"),
 
   // Cache
   DRAGONFLY_PORT: z.coerce.number().positive().default(6379),

@@ -1,11 +1,29 @@
-import { ExplainContractOutput, ExplainEventInput, GetContractOutput } from "@server/lib/types";
+import { z } from "zod";
 
-// TODO: when we switch to a local model using LM Studio, enfore json schema return type:
+// TODO: when we switch to a local model using LM Studio, enforce json schema return type:
 // https://lmstudio.ai/docs/app/api/structured-output
-// TODO: see how to directly enforce return format as we can do in LM Studio
 
-export const SYSTEM_PROMPTS = {
-  explainContract: `You are a smart contract analyzer. Given a contract's ABI and optional source code, provide a comprehensive analysis in JSON format with two fields:
+export const EXPLAIN_CONTRACT = {
+  outputSchema: z.object({
+    overview: z.string(),
+    events: z.array(
+      z.object({
+        signature: z.string(),
+        name: z.string(),
+        description: z.string(),
+        parameters: z.array(
+          z.object({
+            name: z.string(),
+            type: z.string(),
+            indexed: z.boolean(),
+            description: z.string(),
+            significance: z.string(),
+          }),
+        ),
+      }),
+    ),
+  }),
+  systemPrompt: `You are a smart contract analyzer. Given a contract's ABI and optional source code, provide a comprehensive analysis in JSON format with two fields:
 1. "overview": A clear, technical explanation of the contract's purpose, functionality, and architecture
 2. "events": An array of objects describing each event, with each object containing:
    - "signature": Full event signature (e.g., "Transfer(address,address,uint256)")
@@ -103,9 +121,32 @@ Example output:
     ]
   }]
 }`,
+};
 
-  /* ------------------------------ EXPLAIN EVENT ----------------------------- */
-  explainEvent: `You are a smart contract event analyzer. Given an event's occurrence details and its definition, explain what happened in JSON format with two fields:
+/* ------------------------------ EXPLAIN EVENT ----------------------------- */
+export const EXPLAIN_EVENT = {
+  outputSchema: z.object({
+    summary: z.string(),
+    details: z.object({
+      parameters: z.array(
+        z.object({
+          name: z.string(),
+          value: z.string(),
+          analysis: z.string(),
+        }),
+      ),
+      context: z.object({
+        transaction: z.string(),
+        block: z.number(),
+        type: z.string(),
+      }),
+      stateChanges: z.array(z.string()),
+      securityAnalysis: z.string(),
+      relatedActions: z.array(z.string()),
+      businessImpact: z.string(),
+    }),
+  }),
+  systemPrompt: `You are a smart contract event analyzer. Given an event's occurrence details and its definition, explain what happened in JSON format with two fields:
 1. "summary": A concise, human-readable explanation of what this event represents
 2. "details": A technical breakdown including:
    - Exact values and meaning of all parameters

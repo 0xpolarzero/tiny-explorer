@@ -3,7 +3,7 @@ import { CreateFastifyContextOptions } from "@trpc/server/adapters/fastify";
 import { observable } from "@trpc/server/observable";
 import { z } from "zod";
 
-import { ExplainContractInput } from "@server/lib/types";
+import { ExplainContractInput } from "@core/llm/types";
 import { Service } from "@server/service";
 import { COOKIE_NAME } from "@server/service/auth";
 
@@ -87,7 +87,6 @@ export function createAppRouter() {
         }) satisfies z.ZodType<ExplainContractInput>,
       )
       .subscription(({ ctx, input }) => {
-        console.log("Subscribing...");
         return observable<string>((emit) => {
           const onCompletion = (text: string) => {
             emit.next(text);

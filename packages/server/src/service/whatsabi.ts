@@ -2,9 +2,9 @@ import { autoload, loaders } from "@shazow/whatsabi";
 import { createMemoryClient, http } from "tevm";
 
 import { getChainConfig } from "@core/chains";
+import { KNOWN_CONTRACTS } from "@core/llm/known-contracts";
+import { GetContractInput, GetContractOutput } from "@core/llm/types";
 import { debug } from "@server/app/debug";
-import { KNOWN_CONTRACTS } from "@server/lib/known-contracts";
-import { GetContractInput, GetContractOutput } from "@server/lib/types";
 
 const ignoredSourcePaths = ["metadata.json", "creator-tx-hash.txt", "immutable-references"];
 

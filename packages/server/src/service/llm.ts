@@ -1,34 +1,37 @@
-import { createDeepInfra, DeepInfraProvider } from "@ai-sdk/deepinfra";
-import { generateText, streamText } from "ai";
+import { createOpenRouter, OpenRouterProvider } from "@openrouter/ai-sdk-provider";
+import { generateObject, generateText, streamObject, streamText } from "ai";
+import { z } from "zod";
 
-import { SYSTEM_PROMPTS } from "@server/lib/prompts";
-import { ExplainContractOutput, ExplainEventInput, ExplainEventOutput, GetContractOutput } from "@server/lib/types";
+import { EXPLAIN_CONTRACT, EXPLAIN_EVENT } from "@core/llm";
+import { ExplainContractOutput, ExplainEventInput, ExplainEventOutput, GetContractOutput } from "@core/llm/types";
 
 export type LLMServiceOptions = {
-  modelUrl: string;
+  model: string;
   apiKey: string;
 };
 
 export class LLMService {
-  private deepInfra: DeepInfraProvider;
+  private openrouter: OpenRouterProvider;
 
   constructor(private readonly options: LLMServiceOptions) {
-    this.deepInfra = createDeepInfra({
+    this.openrouter = createOpenRouter({
       apiKey: options.apiKey,
     });
   }
 
-  async explainEvent(input: ExplainContractOutput & ExplainEventInput): Promise<ExplainEventOutput> {
+  async explainEvent(input: ExplainContractOutput & ExplainEventInput) {
     const eventInfo = input.events.find((e) => e.name === input.event.name);
     if (!eventInfo) throw new Error("Event not found"); // TODO: this means there is a prompting or other issue we need to handle
 
-    const result = await this.generate(SYSTEM_PROMPTS.explainEvent, JSON.stringify({ event: input.event, eventInfo }));
-    return JSON.parse(result);
+    return await this.generate(
+      EXPLAIN_EVENT.systemPrompt,
+      EXPLAIN_EVENT.outputSchema,
+      JSON.stringify({ event: input.event, eventInfo }),
+    );
   }
 
-  async explainContract(input: GetContractOutput): Promise<ExplainContractOutput> {
-    const result = await this.generate(SYSTEM_PROMPTS.explainContract, JSON.stringify(input));
-    return JSON.parse(result);
+  async explainContract(input: GetContractOutput) {
+    return await this.generate(EXPLAIN_CONTRACT.systemPrompt, EXPLAIN_CONTRACT.outputSchema, JSON.stringify(input));
   }
 
   async explainEventStream(
@@ -38,45 +41,69 @@ export class LLMService {
     const eventInfo = input.events.find((e) => e.name === input.event.name);
     if (!eventInfo) throw new Error("Event not found"); // TODO: this means there is a prompting or other issue we need to handle
 
-    await this.stream(SYSTEM_PROMPTS.explainEvent, JSON.stringify({ event: input.event, eventInfo }), onCompletion);
+    await this.stream(
+      EXPLAIN_EVENT.systemPrompt,
+      EXPLAIN_EVENT.outputSchema,
+      JSON.stringify({ event: input.event, eventInfo }),
+      onCompletion,
+    );
   }
 
   async explainContractStream(
     input: GetContractOutput,
     onCompletion: (text: string) => void,
-    onFinish: (text: string) => void,
+    onFinish: (obj: ExplainContractOutput) => void,
   ): Promise<void> {
-    await this.stream(SYSTEM_PROMPTS.explainContract, JSON.stringify(input), onCompletion, onFinish);
+    await this.stream(
+      EXPLAIN_CONTRACT.systemPrompt,
+      EXPLAIN_CONTRACT.outputSchema,
+      JSON.stringify(input),
+      onCompletion,
+      onFinish,
+    );
   }
 
-  private async generate(systemPrompt: string, input: string): Promise<string> {
-    const { text } = await generateText({
-      model: this.deepInfra(this.options.modelUrl),
-      system: systemPrompt,
-      prompt: input,
-    });
+  private async generate<S extends z.ZodSchema>(systemPrompt: string, schema: S, input: string): Promise<z.infer<S>> {
+    try {
+      const { object } = await generateObject({
+        model: this.openrouter(this.options.model),
+        system: systemPrompt,
+        prompt: input,
+        schema,
+      });
 
-    return text.split("```json")[1]?.split("```")[0] ?? "";
-  }
-
-  private async stream(
-    systemPrompt: string,
-    input: string,
-    onCompletion: (text: string) => void,
-    onFinish?: (text: string) => void,
-  ): Promise<void> {
-    const result = streamText({
-      model: this.deepInfra(this.options.modelUrl),
-      system: systemPrompt,
-      prompt: input,
-    });
-
-    for await (const text of result.textStream) {
-      onCompletion(text);
-      console.log(text);
+      return object;
+    } catch (e) {
+      console.error(e);
+      throw e;
     }
+  }
 
-    const allText = await result.text;
-    onFinish?.(allText.split("```json")[1]?.split("```")[0] ?? "");
+  private async stream<S extends z.ZodSchema>(
+    systemPrompt: string,
+    schema: S,
+    input: string,
+    onCompletion: (obj: any) => void,
+    onFinish?: (obj: z.infer<S>) => void,
+  ): Promise<void> {
+    try {
+      const { partialObjectStream, object: objectPromise } = streamObject({
+        model: this.openrouter(this.options.model),
+        system: systemPrompt,
+        prompt: input,
+        schema,
+      });
+
+      for await (const obj of partialObjectStream) {
+        console.log(obj);
+        onCompletion(obj);
+      }
+
+      const object = await objectPromise;
+      onFinish?.(object);
+    } catch (e) {
+      console.error(e);
+      throw e;
+    }
   }
 }

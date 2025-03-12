@@ -19,11 +19,11 @@
     "test": "dotenvx run -f ./../../.env --quiet -- vitest run"
   },
   "dependencies": {
-    "@ai-sdk/deepinfra": "^0.1.14",
     "@fastify/compress": "^6.5.0",
     "@fastify/cookie": "^8.3.0",
     "@fastify/cors": "^8.3.0",
     "@fastify/websocket": "^7.2.0",
+    "@openrouter/ai-sdk-provider": "^0.4.3",
     "@shazow/whatsabi": "^0.20.0",
     "@trpc/client": "10.34.0",
     "@trpc/server": "10.34.0",

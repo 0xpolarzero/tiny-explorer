@@ -1,4 +1,7 @@
 import { abi } from "@shazow/whatsabi";
+import { z } from "zod";
+
+import { EXPLAIN_CONTRACT, EXPLAIN_EVENT } from "./index";
 
 export type GetContractInput = ExplainContractInput;
 export type GetContractOutput = {
@@ -21,16 +24,9 @@ export type ExplainContractInput = {
   contractAddress: string;
 };
 
-export type ExplainContractOutput = {
-  overview: string;
-  events: Array<{ name: string }>; // TODO: details of each event by llm
-};
-
 export type ExplainEventInput = ExplainContractInput & {
   event: { name: string }; // TODO: what comes from the event listener
 };
 
-export type ExplainEventOutput = {
-  summary: string;
-  details: string;
-};
+export type ExplainEventOutput = z.infer<typeof EXPLAIN_EVENT.outputSchema>;
+export type ExplainContractOutput = z.infer<typeof EXPLAIN_CONTRACT.outputSchema>;

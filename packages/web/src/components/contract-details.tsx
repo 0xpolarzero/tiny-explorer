@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-import { ExplainContractOutput } from "@server/lib/types";
+import { ExplainContractOutput } from "@core/llm/types";
 import { useServer } from "@/hooks/use-server";
 import { useStore } from "@/lib/store";
 
@@ -25,7 +25,6 @@ export const ContractDetails = () => {
           { chainId: chainId.toString(), contractAddress },
           {
             onData: (text) => {
-              console.log(text);
               setText((prev) => prev + text);
             },
             onError: (error) => {
@@ -36,6 +35,7 @@ export const ContractDetails = () => {
             },
           },
         );
+        // console.log(res);
         // setOutput(res);
       } catch (e) {
         setError(true);

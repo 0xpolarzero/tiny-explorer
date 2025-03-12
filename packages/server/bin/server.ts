@@ -53,8 +53,8 @@ export const start = async () => {
   try {
     const service = new Service({
       llm: {
-        modelUrl: env.DEEPINFRA_MODEL_URL,
-        apiKey: env.DEEPINFRA_API_KEY,
+        model: env.OPENROUTER_MODEL_NAME,
+        apiKey: env.OPENROUTER_API_KEY,
       },
       cache: {
         port: env.DRAGONFLY_PORT,
