@@ -10,7 +10,8 @@ export const serverEnvSchema = z.object({
 
   // LLM (TODO: update to use LM Studio)
   OPENROUTER_API_KEY: z.string(),
-  OPENROUTER_MODEL_NAME: z.string().default("qwen/qwq-32b:free"),
+  // Models that support structured output: https://openrouter.ai/api/v1/models?supported_parameters=structured_outputs
+  OPENROUTER_MODEL_NAME: z.string().default("openai/gpt-4o-mini"),
 
   // Cache
   DRAGONFLY_PORT: z.coerce.number().positive().default(6379),

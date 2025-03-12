@@ -1,5 +1,5 @@
+import { ExplainContractInput, ExplainContractOutput, ExplainEventInput, ExplainEventOutput } from "@core/llm/types";
 import { debug } from "@server/app/debug";
-import { ExplainContractInput, ExplainContractOutput, ExplainEventInput, ExplainEventOutput } from "@server/lib/types";
 import { AuthService, AuthServiceOptions } from "@server/service/auth";
 import { CacheService, CacheServiceOptions } from "@server/service/cache";
 import { LLMService, LLMServiceOptions } from "@server/service/llm";
@@ -84,14 +84,17 @@ export class Service {
   }
 
   // TODO: experimenting
-  async explainContractStream(input: ExplainContractInput, onCompletion: (text: string) => void): Promise<void> {
+  async explainContractStream(
+    input: ExplainContractInput,
+    onCompletion: (obj: Partial<ExplainContractOutput>) => void,
+  ): Promise<void> {
     const cacheKey = `contract:${input.chainId}:${input.contractAddress}`;
 
     try {
       const cached = await this.cache.get<ExplainContractOutput>(cacheKey);
       if (cached) {
         debug("Cache hit for key:", cacheKey);
-        onCompletion(JSON.stringify(cached));
+        onCompletion(cached);
         return;
       }
     } catch (error) {
@@ -99,14 +102,14 @@ export class Service {
     }
 
     const contractDetails = await this.whatsabi.getContract(input);
-    await this.llm.explainContractStream(contractDetails, onCompletion, (text) => {
-      this.cache.set(cacheKey, JSON.parse(text));
+    await this.llm.explainContractStream(contractDetails, onCompletion, (obj) => {
+      this.cache.set(cacheKey, obj);
     });
   }
 
   async explainEventStream(
     input: ExplainContractOutput & ExplainEventInput,
-    onCompletion: (text: string) => void,
+    onCompletion: (obj: Partial<ExplainEventOutput>) => void,
   ): Promise<void> {
     await this.llm.explainEventStream(input, onCompletion);
   }

@@ -36,7 +36,7 @@ export class LLMService {
 
   async explainEventStream(
     input: ExplainContractOutput & ExplainEventInput,
-    onCompletion: (text: string) => void,
+    onCompletion: (obj: Partial<ExplainEventOutput>) => void,
   ): Promise<void> {
     const eventInfo = input.events.find((e) => e.name === input.event.name);
     if (!eventInfo) throw new Error("Event not found"); // TODO: this means there is a prompting or other issue we need to handle
@@ -51,7 +51,7 @@ export class LLMService {
 
   async explainContractStream(
     input: GetContractOutput,
-    onCompletion: (text: string) => void,
+    onCompletion: (obj: Partial<ExplainContractOutput>) => void,
     onFinish: (obj: ExplainContractOutput) => void,
   ): Promise<void> {
     await this.stream(

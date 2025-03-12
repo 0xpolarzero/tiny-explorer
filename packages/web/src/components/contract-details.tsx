@@ -11,8 +11,7 @@ export const ContractDetails = () => {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
-  const [output, setOutput] = useState<ExplainContractOutput | null>(null);
-  const [text, setText] = useState("");
+  const [output, setOutput] = useState<Partial<ExplainContractOutput> | null>(null);
 
   const fetchContractDetails = async () => {
     if (chainId && contractAddress) {
@@ -24,8 +23,9 @@ export const ContractDetails = () => {
         const sub = explainContractStream.subscribe(
           { chainId: chainId.toString(), contractAddress },
           {
-            onData: (text) => {
-              setText((prev) => prev + text);
+            onData: (obj) => {
+              console.log(obj);
+              setOutput((prev) => ({ ...prev, ...obj }));
             },
             onError: (error) => {
               console.error(error);
@@ -55,17 +55,14 @@ export const ContractDetails = () => {
   }, [chainId, contractAddress]);
 
   if (error) return <div>Error loading contract details</div>;
-  // if (!output) return <div>No output</div>;
+  if (!output) return <div>No output</div>;
 
   return (
     <div className="flex flex-col gap-4">
-      {/* <div className="text-lg font-bold">{output.overview}</div>
+      <div className="text-lg font-bold">{output?.overview}</div>
       <div className="flex flex-col gap-2">
-        {output.events.map((event) => (
-          <div key={event.name}>{event.name}</div>
-        ))}
-      </div> */}
-      <div className="text-xs">{text}</div>
+        {output?.events?.map((event) => <div key={event.name}>{JSON.stringify(event)}</div>)}
+      </div>
     </div>
   );
 };
