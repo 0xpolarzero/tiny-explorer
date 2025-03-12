@@ -94,10 +94,7 @@ export class LLMService {
         schema,
       });
 
-      for await (const obj of partialObjectStream) {
-        console.log(obj);
-        onCompletion(obj);
-      }
+      for await (const obj of partialObjectStream) onCompletion(obj);
 
       const object = await objectPromise;
       onFinish?.(object);

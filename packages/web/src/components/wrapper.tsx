@@ -20,7 +20,7 @@ export const Wrapper = ({ children }: { children: ReactNode }) => {
   }, []);
 
   return (
-    <div className="bg-background flex min-h-svh flex-col justify-center gap-4 px-2 py-4 md:px-4 md:py-6">
+    <div className="bg-background flex min-h-svh flex-col justify-start gap-4 px-2 py-4 md:px-4 md:py-6">
       {ready && children}
       {!ready && (
         <div className="text-muted-foreground flex min-h-svh items-center justify-center gap-2">

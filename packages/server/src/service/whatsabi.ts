@@ -19,36 +19,40 @@ export class WhatsAbiService {
     const chain = getChainConfig({ chainId });
     if (!chain) throw new Error("Chain not supported");
 
-    // Create client & loader
-    const provider = createMemoryClient({
-      fork: { transport: http(chain.rpcUrl)({}) },
-      common: chain,
-    });
-    const abiLoader = new loaders.MultiABILoader(
-      [
-        new loaders.SourcifyABILoader({ chainId: chain.id }),
-        chain.etherscan
-          ? new loaders.EtherscanABILoader({
-              baseURL: chain.etherscan.apiUrl,
-              apiKey: chain.etherscan.apiKey,
-            })
-          : undefined,
-        chain.blockscout
-          ? new loaders.BlockscoutABILoader({
-              baseURL: chain.blockscout.apiUrl,
-              apiKey: chain.blockscout.apiKey,
-            })
-          : undefined,
-      ].filter((l) => l !== undefined),
-    );
-
     try {
+      // Create client & loader
+      const provider = createMemoryClient({
+        fork: { transport: http(chain.rpcUrl)({}) },
+        common: chain,
+      });
+      const abiLoader = new loaders.MultiABILoader(
+        [
+          new loaders.SourcifyABILoader({ chainId: chain.id }),
+          chain.etherscan
+            ? new loaders.EtherscanABILoader({
+                baseURL: chain.etherscan.apiUrl,
+                apiKey: chain.etherscan.apiKey,
+              })
+            : undefined,
+          chain.blockscout
+            ? new loaders.BlockscoutABILoader({
+                baseURL: chain.blockscout.apiUrl,
+                apiKey: chain.blockscout.apiKey,
+              })
+            : undefined,
+        ].filter((l) => l !== undefined),
+      );
+
       // Get the contract sources and ABI
       const result = await autoload(contractAddress, {
         provider,
         abiLoader,
         followProxies: true,
         loadContractResult: true,
+        onError: (error) => {
+          console.error(error);
+          throw error;
+        },
       });
 
       const sources = await result.contractResult?.getSources?.();

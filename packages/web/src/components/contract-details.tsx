@@ -9,7 +9,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Skeleton } from "@/components/ui/skeleton";
 import { useServer } from "@/hooks/use-server";
 import { useStore } from "@/lib/store";
-import { cn } from "@/lib/utils";
 
 export const ContractDetails = () => {
   const { chainId, contractAddress } = useStore();
@@ -22,6 +21,7 @@ export const ContractDetails = () => {
   const fetchContractDetails = async () => {
     if (chainId && contractAddress) {
       try {
+        setOutput(null);
         setLoading(true);
         setError(false);
 
@@ -29,6 +29,7 @@ export const ContractDetails = () => {
           { chainId: chainId.toString(), contractAddress },
           {
             onData: (obj) => {
+              setLoading(false);
               setOutput((prev) => ({ ...prev, ...obj }));
             },
             onError: (error) => {
@@ -37,7 +38,8 @@ export const ContractDetails = () => {
             },
             onComplete: () => {
               setLoading(false);
-              setTimeout(() => sub.unsubscribe(), 0);
+              sub.unsubscribe();
+              console.log(output);
             },
           },
         );
@@ -48,8 +50,6 @@ export const ContractDetails = () => {
         toast.error("Failed to explain contract", {
           description: e instanceof Error ? e.message : "Unknown error",
         });
-      } finally {
-        setLoading(false);
       }
     }
   };
@@ -57,6 +57,8 @@ export const ContractDetails = () => {
   useEffect(() => {
     fetchContractDetails();
   }, [chainId, contractAddress]);
+
+  console.log(output);
 
   if (error) {
     return (
@@ -131,29 +133,29 @@ export const ContractDetails = () => {
               {output.events.map((event, index) => (
                 <AccordionItem key={index} value={index.toString()}>
                   <AccordionTrigger className="cursor-pointer gap-2 md:grid md:grid-cols-[auto_1fr_auto]">
-                    <span className="text-sm font-medium">{event.name}</span>
+                    <span className="text-sm font-medium">{event?.name}</span>
                     <code className="bg-muted/70 hidden w-fit rounded px-2 py-1 font-mono text-xs md:block">
-                      {event.signature}
+                      {event?.signature}
                     </code>
                   </AccordionTrigger>
                   <AccordionContent>
-                    <p className="mb-4 text-sm">{event.description}</p>
-                    {event.parameters.length > 0 && (
+                    <p className="mb-4 text-sm">{event?.description}</p>
+                    {event?.parameters?.length > 0 && (
                       <div>
                         <h4 className="mb-2 text-sm font-semibold">Parameters</h4>
                         <div className="grid gap-2">
                           {event.parameters.map((param) => (
-                            <div key={param.name} className="bg-muted/30 rounded-md p-3">
+                            <div key={param?.name} className="bg-muted/30 rounded-md p-3">
                               <div className="mb-1 flex items-center gap-2">
-                                <span className="bg-muted rounded px-1.5 py-0.5 font-mono text-xs">{param.type}</span>
-                                <span className="font-medium">{param.name}</span>
-                                {param.indexed && (
+                                <span className="bg-muted rounded px-1.5 py-0.5 font-mono text-xs">{param?.type}</span>
+                                <span className="font-medium">{param?.name}</span>
+                                {param?.indexed && (
                                   <Badge variant="outline" className="h-5 text-xs">
                                     indexed
                                   </Badge>
                                 )}
                               </div>
-                              {param.description && (
+                              {param?.description && (
                                 <p className="text-muted-foreground text-xs">{param.description}</p>
                               )}
                             </div>
