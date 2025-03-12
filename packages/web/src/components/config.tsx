@@ -44,7 +44,7 @@ export const Config = () => {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="w-2/3 space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="flex w-full flex-col items-center gap-4 md:flex-row">
         <FormField
           control={form.control}
           name="chain"
@@ -97,7 +97,7 @@ export const Config = () => {
                   </Command>
                 </PopoverContent>
               </Popover>
-              <FormDescription>This is the chain the contract is deployed on.</FormDescription>
+              <FormDescription>The chain the contract is deployed on.</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -106,17 +106,17 @@ export const Config = () => {
           control={form.control}
           name="contractAddress"
           render={({ field }) => (
-            <FormItem>
+            <FormItem className="flex-1">
               <FormLabel className="cursor-pointer">Contract Address</FormLabel>
               <FormControl>
-                <Input placeholder="0x..." {...field} />
+                <Input className="text-sm" placeholder="0x..." {...field} />
               </FormControl>
-              <FormDescription>This is the address of the contract you want to listen to.</FormDescription>
+              <FormDescription>The address of the contract you want to listen to.</FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button className="cursor-pointer" type="submit">
+        <Button className="cursor-pointer md:-mt-1.5" type="submit">
           Search
         </Button>
       </form>
