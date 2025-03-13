@@ -1,9 +1,12 @@
 import { z } from "zod";
 
+import { GetContractInput } from "@core/llm/types";
+
 // TODO: when we switch to a local model using LM Studio, enforce json schema return type:
 // https://lmstudio.ai/docs/app/api/structured-output
 
 export const EXPLAIN_CONTRACT = {
+  getCacheKey: (input: GetContractInput) => `contract:${input.chainId}:${input.contractAddress}`,
   outputSchema: z.object({
     overview: z.string(),
     events: z.array(

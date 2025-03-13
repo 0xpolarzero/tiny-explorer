@@ -18,7 +18,7 @@ const App = () => {
         <Wrapper>
           <Config />
           <Separator />
-          <ContractDetails />
+          <ContractDetails className="flex-1" />
           <Footer />
         </Wrapper>
       </ThemeProvider>

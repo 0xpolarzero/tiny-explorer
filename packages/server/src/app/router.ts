@@ -14,7 +14,10 @@ export type AppContext = {
   res: CreateFastifyContextOptions["res"];
 };
 
-let activeSubscriptions = 0;
+// We need this hack for now as the subscription is fired twice (and runs all of its body twice) although
+// there is only one subscription and observable.
+// TODO: This is awful, we need to fix this sometime but will need to post the issue as it doesn't seem to exist online.
+const contractSubscriptions = new Set<string>(); // set of sessionIds with an active contract subscription
 
 /**
  * Creates and configures the main tRPC router with all API endpoints.
@@ -76,9 +79,7 @@ export function createAppRouter() {
           contractAddress: z.string(),
         }) satisfies z.ZodType<ExplainContractInput>,
       )
-      .mutation(async ({ ctx, input }) => {
-        return await ctx.service.explainContract(input);
-      }),
+      .mutation(async ({ ctx, input }) => await ctx.service.explainContract(input)),
 
     // TODO: Use protectedProcedure when we can handle cookies with websockets
     explainContractStream: t.procedure
@@ -86,71 +87,66 @@ export function createAppRouter() {
         z.object({
           chainId: z.string(),
           contractAddress: z.string(),
+          sessionId: z.string(),
         }) satisfies z.ZodType<ExplainContractInput>,
       )
-      .subscription(({ ctx, input }) => {
-        console.log("Starting subscription", { chainId: input.chainId, contractAddress: input.contractAddress });
-        activeSubscriptions++;
-        console.log("Active subscriptions:", activeSubscriptions);
+      .subscription(async ({ ctx, input }) => {
+        // Return an empty observable if we already have a subscription for this session
+        // Since this is getting triggered twice, this second one will not tamper with the first one (the actual subscription)
+        if (contractSubscriptions.has(input.sessionId)) {
+          return observable<Partial<ExplainContractOutput>, Error>(() => {
+            return () => {};
+          });
+        }
 
-        return observable<Partial<ExplainContractOutput>>((emit) => {
-          // Track if the subscription is still active
-          let isActive = true;
-          let cleanupFn: (() => void) | null = null;
+        contractSubscriptions.add(input.sessionId);
+        const cached = await ctx.service.explainContractFromCache(input);
 
-          // Create a cleanup function that will be called when the client disconnects
-          const cleanup = () => {
-            console.log("Cleaning up subscription");
-            isActive = false;
-          };
-
-          // Start the streaming process
-          ctx.service
-            .explainContractStream(input, {
-              onCompletion: (obj: Partial<ExplainContractOutput>) => {
-                if (isActive) emit.next(obj);
-              },
-              onFinish: () => {
-                if (isActive) emit.complete();
-              },
-              onError: (err: Error) => {
-                if (isActive) {
-                  console.error("Subscription error:", err);
-                  emit.error(
-                    err instanceof TRPCError
-                      ? err
-                      : new TRPCError({
-                          code: "INTERNAL_SERVER_ERROR",
-                          message: err.message,
-                        }),
-                  );
-                }
-              },
-            })
-            .then((cleanup) => {
-              // Store the cleanup function for later use
-              cleanupFn = cleanup;
-            })
-            .catch((err) => {
-              console.error("Failed to start stream:", err);
-              if (isActive) {
-                emit.error(
-                  err instanceof TRPCError
-                    ? err
-                    : new TRPCError({
-                        code: "INTERNAL_SERVER_ERROR",
-                        message: err.message,
-                      }),
-                );
-              }
+        // Retrieve contract details if we couldn't get a cached explanation
+        let error: Error | undefined;
+        const contractDetails = cached
+          ? undefined
+          : await ctx.service.getContractDetails(input).catch((err) => {
+              error = err instanceof Error ? err : new Error(String(err));
+              return undefined;
             });
 
-          // Return a cleanup function that will be called when the client disconnects
-          return () => {
-            console.log("Client disconnected");
-            cleanup();
-            if (cleanupFn) cleanupFn();
-          };
+        return observable<Partial<ExplainContractOutput>, Error>((emit) => {
+          // Return the cached explanation if it exists without streaming
+          if (cached) {
+            emit.next(cached);
+            emit.complete();
+            contractSubscriptions.delete(input.sessionId);
+
+            return () => {};
+          }
+
+          // Emit the error if we couldn't get contract details
+          if (error) {
+            emit.error(error);
+            emit.complete();
+            contractSubscriptions.delete(input.sessionId);
+
+            return () => {};
+          }
+
+          // Otherwise, stream the explanation and return a cleanup function
+          return ctx.service.explainContractStream(input, contractDetails!, {
+            onProgress: (obj) => emit.next(obj),
+            onComplete: () => {
+              emit.complete();
+              contractSubscriptions.delete(input.sessionId);
+            },
+            onError: (err) => {
+              emit.error(
+                new TRPCError({
+                  code: "INTERNAL_SERVER_ERROR",
+                  message: err.message,
+                }),
+              );
+              contractSubscriptions.delete(input.sessionId);
+            },
+          });
         });
       }),
   });

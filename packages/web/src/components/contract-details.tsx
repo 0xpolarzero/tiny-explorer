@@ -12,14 +12,6 @@ import { useSearchStore } from "@/store/search";
 export const ContractDetails: FC<{ className?: string }> = ({ className }) => {
   const { loading, error, output } = useSearchStore();
 
-  // const overviewRef = useRef<string | undefined>(undefined);
-  // useEffect(() => {
-  //   if (output?.overview !== overviewRef.current) {
-  //     console.log(output?.overview);
-  //   }
-  //   overviewRef.current = output?.overview;
-  // }, [output]);
-
   if (error) {
     return (
       <Card className={cn(className)}>

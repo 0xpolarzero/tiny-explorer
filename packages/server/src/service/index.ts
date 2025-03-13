@@ -1,9 +1,11 @@
+import { EXPLAIN_CONTRACT } from "@core/llm";
 import {
   ExplainContractInput,
   ExplainContractOutput,
   ExplainEventInput,
   ExplainEventOutput,
   GetContractOutput,
+  StreamCallbacks,
 } from "@core/llm/types";
 import { debug } from "@server/app/debug";
 import { AuthService, AuthServiceOptions } from "@server/service/auth";
@@ -96,68 +98,52 @@ export class Service {
     }
   }
 
-  async explainContractStream(
+  explainContractStream(
     input: ExplainContractInput,
-    cb: {
-      onCompletion: (obj: Partial<ExplainContractOutput>) => void;
-      onFinish: () => void;
-      onError: (err: Error) => void;
-    },
-  ): Promise<() => void> {
-    const { onCompletion, onFinish, onError } = cb;
-    const cacheKey = `contract:${input.chainId}:${input.contractAddress}`;
-    let llmCleanup: (() => void) | null = null;
+    contractDetails: GetContractOutput,
+    callbacks: StreamCallbacks<ExplainContractOutput>,
+  ): () => void {
+    return this.llm.explainContractStream(contractDetails, {
+      ...callbacks,
+      onComplete: (obj) => {
+        this.cache.set(EXPLAIN_CONTRACT.getCacheKey(input), obj);
+        callbacks.onComplete(obj);
+      },
+    });
+  }
+
+  async explainContractFromCache(input: ExplainContractInput): Promise<ExplainContractOutput | undefined> {
+    const cacheKey = EXPLAIN_CONTRACT.getCacheKey(input);
 
     try {
       const cached = await this.cache.get<ExplainContractOutput>(cacheKey);
       if (cached) {
         debug("Cache hit for key:", cacheKey);
-        onCompletion(cached);
-        onFinish();
-        return () => {}; // No-op cleanup for cache hits
+        return cached;
       }
-    } catch (err) {
-      debug("Error in explainContractStream:", err);
-      onError(err instanceof Error ? err : new Error(String(err)));
-      onFinish();
-      return () => {}; // No-op cleanup for errors
-    }
 
-    let contractDetails: GetContractOutput;
-    try {
-      contractDetails = await this.whatsabi.getContract(input);
+      return undefined;
     } catch (err) {
-      debug("Error in getContract:", err);
-      onError(err instanceof Error ? err : new Error(String(err)));
-      onFinish();
-      return () => {}; // No-op cleanup for errors
-    }
-
-    try {
-      // Get the cleanup function from the LLM service
-      llmCleanup = await this.llm.explainContractStream(contractDetails, onCompletion, (obj) => {
-        this.cache.set(cacheKey, obj);
-        onFinish();
-      });
-
-      // Return a cleanup function that will call the LLM cleanup
-      return () => {
-        if (llmCleanup) llmCleanup();
-      };
-    } catch (err) {
-      debug("Error in explainContractStream:", err);
-      onError(err instanceof Error ? err : new Error(String(err)));
-      onFinish();
-      return () => {}; // No-op cleanup for errors
+      debug("Error in explainContractFromCache:", err);
+      return undefined;
     }
   }
 
-  async explainEventStream(
-    input: ExplainContractOutput & ExplainEventInput,
-    onCompletion: (obj: Partial<ExplainEventOutput>) => void,
-  ): Promise<void> {
+  async getContractDetails(input: ExplainContractInput): Promise<GetContractOutput> {
     try {
-      await this.llm.explainEventStream(input, onCompletion);
+      return await this.whatsabi.getContract(input);
+    } catch (err) {
+      debug("Error in getContractDetails:", err);
+      throw err;
+    }
+  }
+
+  explainEventStream(
+    input: ExplainContractOutput & ExplainEventInput,
+    callbacks: StreamCallbacks<ExplainEventOutput>,
+  ): () => void {
+    try {
+      return this.llm.explainEventStream(input, callbacks);
     } catch (err) {
       debug("Error in explainEventStream:", err);
       throw err;

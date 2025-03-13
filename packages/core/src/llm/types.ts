@@ -30,3 +30,9 @@ export type ExplainEventInput = ExplainContractInput & {
 
 export type ExplainEventOutput = z.infer<typeof EXPLAIN_EVENT.outputSchema>;
 export type ExplainContractOutput = z.infer<typeof EXPLAIN_CONTRACT.outputSchema>;
+
+export type StreamCallbacks<T> = {
+  onProgress: (obj: Partial<T>) => void;
+  onComplete: (obj: T) => void;
+  onError: (err: Error) => void;
+};

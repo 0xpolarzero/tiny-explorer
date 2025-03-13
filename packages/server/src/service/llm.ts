@@ -1,9 +1,15 @@
 import { createOpenRouter, OpenRouterProvider } from "@openrouter/ai-sdk-provider";
-import { generateObject, generateText, streamObject, streamText } from "ai";
+import { generateObject, streamObject } from "ai";
 import { z } from "zod";
 
 import { EXPLAIN_CONTRACT, EXPLAIN_EVENT } from "@core/llm";
-import { ExplainContractOutput, ExplainEventInput, ExplainEventOutput, GetContractOutput } from "@core/llm/types";
+import {
+  ExplainContractOutput,
+  ExplainEventInput,
+  ExplainEventOutput,
+  GetContractOutput,
+  StreamCallbacks,
+} from "@core/llm/types";
 
 export type LLMServiceOptions = {
   model: string;
@@ -34,33 +40,23 @@ export class LLMService {
     return await this.generate(EXPLAIN_CONTRACT.systemPrompt, EXPLAIN_CONTRACT.outputSchema, JSON.stringify(input));
   }
 
-  async explainEventStream(
+  explainEventStream(
     input: ExplainContractOutput & ExplainEventInput,
-    onCompletion: (obj: Partial<ExplainEventOutput>) => void,
-  ): Promise<void> {
+    callbacks: StreamCallbacks<ExplainEventOutput>,
+  ): () => void {
     const eventInfo = input.events.find((e) => e.name === input.event.name);
     if (!eventInfo) throw new Error("Event not found"); // TODO: this means there is a prompting or other issue we need to handle
 
-    await this.stream(
+    return this.stream(
       EXPLAIN_EVENT.systemPrompt,
       EXPLAIN_EVENT.outputSchema,
       JSON.stringify({ event: input.event, eventInfo }),
-      onCompletion,
+      callbacks,
     );
   }
 
-  async explainContractStream(
-    input: GetContractOutput,
-    onCompletion: (obj: Partial<ExplainContractOutput>) => void,
-    onFinish: (obj: ExplainContractOutput) => void,
-  ): Promise<() => void> {
-    return await this.stream(
-      EXPLAIN_CONTRACT.systemPrompt,
-      EXPLAIN_CONTRACT.outputSchema,
-      JSON.stringify(input),
-      onCompletion,
-      onFinish,
-    );
+  explainContractStream(input: GetContractOutput, callbacks: StreamCallbacks<ExplainContractOutput>): () => void {
+    return this.stream(EXPLAIN_CONTRACT.systemPrompt, EXPLAIN_CONTRACT.outputSchema, JSON.stringify(input), callbacks);
   }
 
   private async generate<S extends z.ZodSchema>(systemPrompt: string, schema: S, input: string): Promise<z.infer<S>> {
@@ -79,38 +75,39 @@ export class LLMService {
     }
   }
 
-  private async stream<S extends z.ZodSchema>(
+  private stream<S extends z.ZodSchema>(
     systemPrompt: string,
     schema: S,
     input: string,
-    onCompletion: (obj: any) => void,
-    onFinish?: (obj: z.infer<S>) => void,
-  ): Promise<() => void> {
+    callbacks: StreamCallbacks<z.infer<S>>,
+  ): () => void {
+    const { onProgress, onComplete, onError } = callbacks;
     const abortController = new AbortController();
 
     try {
-      const { partialObjectStream, object: objectPromise } = streamObject({
+      const { partialObjectStream } = streamObject({
         model: this.openrouter(this.options.model),
         system: systemPrompt,
         prompt: input,
         schema,
         abortSignal: abortController.signal,
+        onFinish: ({ object }) => {
+          onComplete(object);
+        },
+        onError: (err) => {
+          onError(err.error instanceof Error ? err.error : new Error(String(err.error)));
+        },
       });
 
       // Process the stream in the background
       (async () => {
         try {
-          for await (const obj of partialObjectStream) onCompletion(obj);
-
-          if (onFinish) {
-            const object = await objectPromise;
-            onFinish(object);
-          }
+          for await (const obj of partialObjectStream) onProgress(obj);
         } catch (err) {
           if (abortController.signal.aborted) {
             console.log("Stream aborted");
           } else {
-            console.error(err);
+            onError(err instanceof Error ? err : new Error(String(err)));
           }
         }
       })();
@@ -119,8 +116,8 @@ export class LLMService {
         abortController.abort();
       };
     } catch (err) {
-      console.error(err);
-      throw err;
+      onError(err instanceof Error ? err : new Error(String(err)));
+      return () => {};
     }
   }
 }

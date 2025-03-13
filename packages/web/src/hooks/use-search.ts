@@ -22,7 +22,7 @@ export const useSearch = () => {
       setError(false);
 
       const sub = explainContractStream.subscribe(
-        { chainId: chainId.toString(), contractAddress },
+        { chainId: chainId.toString(), contractAddress, sessionId: "123" },
         {
           onData: (obj) => {
             updateOutput(obj);
@@ -41,7 +41,6 @@ export const useSearch = () => {
         },
       );
 
-      // Store the subscription reference
       setSubscription(sub);
     } catch (e) {
       setError(true);
