@@ -9,6 +9,30 @@ export const EXPLAIN_CONTRACT = {
   getCacheKey: (input: GetContractInput) => `contract:${input.chainId}:${input.contractAddress}`,
   outputSchema: z.object({
     overview: z.string(),
+    functions: z.array(
+      z.object({
+        signature: z.string(),
+        name: z.string(),
+        description: z.string(),
+        parameters: z.array(
+          z.object({
+            name: z.string(),
+            type: z.string(),
+            description: z.string(),
+          }),
+        ),
+        returns: z.array(
+          z.object({
+            type: z.string(),
+            description: z.string(),
+          }),
+        ),
+        visibility: z.array(z.enum(["public", "external", "internal", "private", "pure", "view"])),
+        payable: z.boolean(),
+        modifiers: z.array(z.string()),
+        sideEffects: z.array(z.string()),
+      }),
+    ),
     events: z.array(
       z.object({
         signature: z.string(),
@@ -26,7 +50,7 @@ export const EXPLAIN_CONTRACT = {
       }),
     ),
   }),
-  systemPrompt: `You are a smart contract analyzer. Given a contract's ABI and optional source code, which might be complete, incomplete, or missing, provide a comprehensive analysis in JSON format with two fields:
+  systemPrompt: `You are a smart contract analyzer. Given a contract's ABI and optional source code, which might be complete, incomplete, or missing, provide a comprehensive analysis in JSON format with three fields:
 1. "overview": A clear, technical explanation of the contract's purpose, functionality, and architecture
 2. "events": An array of objects describing each event, with each object containing:
    - "signature": Full event signature (e.g., "Transfer(address,address,uint256)")
@@ -42,6 +66,23 @@ export const EXPLAIN_CONTRACT = {
    - "stateChanges": Array of state variables that are typically modified when this event is emitted
    - "securityConsiderations": Any security implications or considerations when handling this event
    - "commonPatterns": Common usage patterns or scenarios where this event is relevant
+3. "functions": An array of objects describing each function, with each object containing:
+   - "signature": Full function signature (e.g., "transfer(address,uint256)")
+   - "name": Function name
+   - "description": Detailed explanation of what the function does and its purpose
+   - "parameters": Array of parameter objects, each with:
+     - "name": Parameter name
+     - "type": Parameter type
+     - "description": What this parameter represents and how it's used
+   - "returns": Array of return value objects, each with:
+     - "type": Return value type
+     - "description": What this return value represents
+   - "visibility": Array of function visibility (strictly among the following: public, external, internal, private, pure, view)
+   - "modifiers": Array of modifiers applied to the function (e.g., "onlyOwner", "nonReentrant") each with a very brief explanation of what they do
+   - "payable": Boolean indicating if the function is payable
+   - "sideEffects": Array of state changes or external calls made by this function
+   - "securityConsiderations": Any security implications or considerations when calling this function
+   - "commonPatterns": Common usage patterns or scenarios where this function is relevant
 
 Format your response as a valid JSON object.
 
@@ -57,13 +98,23 @@ Example input:
         {"name": "to", "type": "address", "indexed": true},
         {"name": "value", "type": "uint256", "indexed": false}
       ]
+    },
+    {
+      "type": "function",
+      "name": "transfer",
+      "inputs": [
+        {"name": "to", "type": "address"},
+        {"name": "value", "type": "uint256"}
+      ],
+      "outputs": [{"type": "bool"}],
+      "stateMutability": "nonpayable"
     }
   ],
   "name": "MyToken",
   "sources": [
     {
       "name": "MyToken",
-      "content": "contract MyToken {\\n event Transfer(address indexed from, address indexed to, uint256 value);\\n ...",
+      "content": "contract MyToken {\\n event Transfer(address indexed from, address indexed to, uint256 value);\\n function transfer(address to, uint256 value) public returns (bool) { ... }\\n ...",
     },
     // Alternative source for a contract that already has a known explanation (e.g. a popular library)
     {
@@ -77,6 +128,46 @@ Example output:
 
 {
   "overview": "This appears to be an ERC20 token contract named MyToken. It implements the standard token transfer functionality with proper event emission for tracking token movements.",
+  "functions": [{
+    "signature": "transfer(address,uint256)",
+    "name": "transfer",
+    "description": "Transfers tokens from the sender's account to the specified recipient",
+    "parameters": [
+      {
+        "name": "to",
+        "type": "address",
+        "description": "The recipient address that will receive the tokens"
+      },
+      {
+        "name": "value",
+        "type": "uint256",
+        "description": "The amount of tokens to transfer"
+      }
+    ],
+    "returns": [
+      {
+        "type": "bool",
+        "description": "Returns true if the transfer was successful, reverts otherwise"
+      }
+    ],
+    "visibility": ["public"],
+    "modifiers": ["nonReentrant: Prevents reentrancy"],
+    "sideEffects": [
+      "Decreases sender's balance by the specified amount",
+      "Increases recipient's balance by the specified amount",
+      "Emits a Transfer event"
+    ],
+    "securityConsiderations": [
+      "Ensure sufficient balance before calling",
+      "Be aware of potential reentrancy if the recipient is a contract",
+      "Verify the recipient address is correct to avoid loss of funds"
+    ],
+    "commonPatterns": [
+      "Direct token transfers between users",
+      "Payments for goods or services",
+      "Distribution of rewards or dividends"
+    ]
+  }],
   "events": [{
     "signature": "Transfer(address,address,uint256)",
     "name": "Transfer",

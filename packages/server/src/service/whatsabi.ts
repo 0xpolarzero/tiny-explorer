@@ -1,9 +1,9 @@
 import { autoload, interfaces, loaders } from "@shazow/whatsabi";
-import { createMemoryClient, http } from "tevm";
 
 import { getChainConfig } from "@core/chains";
 import { KNOWN_CONTRACTS, KNOWN_INTERFACES } from "@core/llm/known-contracts";
 import { GetContractInput, GetContractOutput } from "@core/llm/types";
+import { createTevmClient } from "@core/tevm";
 import { debug } from "@server/app/debug";
 
 const ignoredSourcePaths = ["metadata.json", "creator-tx-hash.txt", "immutable-references"];
@@ -20,11 +20,7 @@ export class WhatsAbiService {
     if (!chain) throw new Error("Chain not supported");
 
     try {
-      // Create client & loader
-      const provider = createMemoryClient({
-        fork: { transport: http(chain.rpcUrl)({}) },
-        common: chain,
-      });
+      // Create loader
       const abiLoader = new loaders.MultiABILoader(
         [
           new loaders.SourcifyABILoader({ chainId: chain.id }),
@@ -45,7 +41,7 @@ export class WhatsAbiService {
 
       // Get the contract sources and ABI
       const { abi, contractResult } = await autoload(contractAddress, {
-        provider,
+        provider: createTevmClient(chain),
         abiLoader,
         followProxies: true,
         loadContractResult: true,
