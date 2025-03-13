@@ -2,7 +2,7 @@
 
 **A React application providing a user interface for analyzing smart contracts with AI-powered explanations.**
 
-The web package implements the frontend for the EVM AI Indexer, allowing users to submit contract addresses and view AI-generated explanations of their functionality.
+The web package implements the frontend for the TinyExplorer, allowing users to submit contract addresses and view AI-generated explanations of their functionality.
 
 ## Table of contents
 
@@ -23,11 +23,11 @@ The web package implements the frontend for the EVM AI Indexer, allowing users t
 
 ## Overview
 
-The web package provides a React-based user interface for interacting with the EVM AI Indexer. It allows users to enter contract addresses, select blockchain networks, and receive AI-generated analyses of smart contracts including their functionality, events, and other details.
+The web package provides a React-based user interface for interacting with the TinyExplorer. It allows users to enter contract addresses, select blockchain networks, and receive AI-generated analyses of smart contracts including their functionality, events, and other details.
 
 ## Installation
 
-This package is part of the EVM AI Indexer monorepo. To install it:
+This package is part of the TinyExplorer monorepo. To install it:
 
 ```bash
 # From the repository root

@@ -1,4 +1,4 @@
-# EVM AI Indexer
+# TinyExplorer
 
 **A user-friendly interface for explaining contracts and events in real time on EVM chains using AI.**
 
@@ -21,7 +21,7 @@
 
 ## Overview
 
-EVM AI Indexer is a system that combines blockchain interaction with AI language models to provide intuitive, human-readable explanations of smart contracts and their events. By analyzing contract source code, ABIs, and event data, the system helps users understand contract functionality without requiring extensive blockchain or Solidity knowledge, and explains events as they occur.
+TinyExplorer is a system that combines blockchain interaction with AI language models to provide intuitive, human-readable explanations of smart contracts and their events. By analyzing contract source code, ABIs, and event data, the system helps users understand contract functionality without requiring extensive blockchain or Solidity knowledge, and explains events as they occur.
 
 ## Features
 
@@ -44,8 +44,8 @@ EVM AI Indexer is a system that combines blockchain interaction with AI language
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/0xpolarzero/evm-ai-indexer.git
-cd evm-ai-indexer
+git clone https://github.com/0xpolarzero/tiny-explorer.git
+cd tiny-explorer
 ```
 
 2. Install dependencies:
@@ -112,7 +112,8 @@ Future development plans:
 - use multiple api keys for various chains
 - create server for both llm & backend stuff
   - use caching for contract code & abi
-- add lm studio running in docker instead of deep infra https://gitlab.com/logliwo/lm-studio-docker-compose/-/tree/main?ref_type=heads
+- add lm studio running in docker instead of deep infra https://gitlab.com/logliwo/lm-studio-docker-compose/-/tree/main?ref_type=heads (??)
+- update server to use serverless
 
 (later)
 

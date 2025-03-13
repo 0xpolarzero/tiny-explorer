@@ -1,8 +1,8 @@
 # Contracts
 
-**A Foundry-based Solidity package for testing and demonstration of smart contracts with the EVM AI Indexer.**
+**A Foundry-based Solidity package for testing and demonstration of smart contracts with the TinyExplorer.**
 
-The contracts package provides example smart contracts for testing the EVM AI Indexer's analysis capabilities.
+The contracts package provides example smart contracts for testing the TinyExplorer's analysis capabilities.
 
 ## Table of contents
 
@@ -20,11 +20,11 @@ The contracts package provides example smart contracts for testing the EVM AI In
 
 ## Overview
 
-The contracts package contains a simple example smart contract (`Counter.sol`) implemented using Solidity and the Foundry development framework. This package serves as a testing ground for the EVM AI Indexer, providing real contracts that can be analyzed by the system.
+The contracts package contains a simple example smart contract (`Counter.sol`) implemented using Solidity and the Foundry development framework. This package serves as a testing ground for the TinyExplorer, providing real contracts that can be analyzed by the system.
 
 ## Installation
 
-This package is part of the EVM AI Indexer monorepo. To install it:
+This package is part of the TinyExplorer monorepo. To install it:
 
 ```bash
 # From the repository root

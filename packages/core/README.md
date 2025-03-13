@@ -1,8 +1,8 @@
 # Core
 
-**A shared library providing configuration, constants, types, and utilities for the EVM AI Indexer ecosystem.**
+**A shared library providing configuration, constants, types, and utilities for the TinyExplorer ecosystem.**
 
-The core package serves as the foundation for the EVM AI Indexer, containing shared environment configurations, blockchain chain definitions, and LLM integration utilities that are consumed by both the server and web packages.
+The core package serves as the foundation for the TinyExplorer, containing shared environment configurations, blockchain chain definitions, and LLM integration utilities that are consumed by both the server and web packages.
 
 ## Table of contents
 
@@ -18,7 +18,7 @@ The core package serves as the foundation for the EVM AI Indexer, containing sha
 
 ## Overview
 
-The core package centralizes configuration and utilities that are shared across the EVM AI Indexer ecosystem. It provides:
+The core package centralizes configuration and utilities that are shared across the TinyExplorer ecosystem. It provides:
 
 - Type-safe environment variables through Zod schemas
 - Blockchain chain configurations and RPC endpoints
@@ -29,7 +29,7 @@ By separating these shared resources into a dedicated package, we ensure that co
 
 ## Installation
 
-This package is part of the EVM AI Indexer monorepo. To install it:
+This package is part of the TinyExplorer monorepo. To install it:
 
 ```bash
 # From the repository root

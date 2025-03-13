@@ -13,7 +13,7 @@ import "@/App.css";
 const App = () => {
   return (
     <ServerProvider>
-      <ThemeProvider defaultTheme="dark" storageKey="evm-ai-indexer-theme">
+      <ThemeProvider defaultTheme="dark" storageKey="tiny-explorer-theme">
         <Toaster />
         <Wrapper>
           <Config />

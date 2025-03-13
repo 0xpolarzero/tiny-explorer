@@ -2,7 +2,7 @@
 
 **A tRPC server that provides API endpoints for analyzing EVM contracts with an LLM and caches results.**
 
-The server package implements the backend services for the EVM AI Indexer, handling contract analysis requests, LLM integration, and authentication.
+The server package implements the backend services for the TinyExplorer, handling contract analysis requests, LLM integration, and authentication.
 
 ## Table of contents
 
@@ -30,7 +30,7 @@ The server provides a tRPC API for analyzing smart contracts on EVM blockchains.
 
 ## Installation
 
-This package is part of the EVM AI Indexer monorepo. To install it:
+This package is part of the TinyExplorer monorepo. To install it:
 
 ```bash
 # From the repository root
@@ -84,8 +84,8 @@ The server can be deployed using Docker:
 
 ```bash
 # Build the images
-docker build -f Dockerfile.server -t evm-ai-indexer-server .
-docker build -f Dockerfile.llm -t evm-ai-indexer-llm . # not yet using a local LLM
+docker build -f Dockerfile.server -t tiny-explorer-server .
+docker build -f Dockerfile.llm -t tiny-explorer-llm . # not yet using a local LLM
 
 # Run with Docker Compose
 docker-compose up -d
@@ -94,8 +94,8 @@ docker-compose up -d
 Or use the packages published to the GitHub Container Registry:
 
 ```bash
-docker pull ghcr.io/0xpolarzero/evm-ai-indexer-server:latest
-docker pull ghcr.io/0xpolarzero/evm-ai-indexer-llm:latest
+docker pull ghcr.io/0xpolarzero/tiny-explorer-server:latest
+docker pull ghcr.io/0xpolarzero/tiny-explorer-llm:latest
 ```
 
 ## Features

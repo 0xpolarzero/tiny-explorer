@@ -1,4 +1,4 @@
-# EVM AI Indexer - Development Guidelines
+# TinyExplorer - Development Guidelines
 
 ## Commands
 

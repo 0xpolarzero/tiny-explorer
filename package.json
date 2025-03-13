@@ -1,9 +1,9 @@
 {
-  "name": "evm-ai-indexer",
+  "name": "tiny-explorer",
   "description": "A tiny indexer on EVM chains that explains contract events with a LLM.",
   "repository": {
     "type": "git",
-    "url": "https://github.com/0xpolarzero/evm-ai-indexer"
+    "url": "https://github.com/0xpolarzero/tiny-explorer"
   },
   "license": "MIT",
   "scripts": {
