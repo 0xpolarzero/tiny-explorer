@@ -3,12 +3,12 @@ import { useConfigStore } from "@/store/config";
 import { useSearchStore } from "@/store/search";
 
 export const useSearch = () => {
-  const { chainId, contractAddress } = useConfigStore();
+  const { chainId, contractAddress, sessionId } = useConfigStore();
   const { explainContractStream } = useServer();
   const { subscriptionRef, setSubscription, setOutput, updateOutput, setLoading, setError } = useSearchStore();
 
   const fetchContractDetails = async ({ onError }: { onError: (error: Error) => void }) => {
-    if (!contractAddress) return;
+    if (!contractAddress || !sessionId) return;
 
     try {
       // Clean up any existing subscription
@@ -22,7 +22,7 @@ export const useSearch = () => {
       setError(false);
 
       const sub = explainContractStream.subscribe(
-        { chainId: chainId.toString(), contractAddress, sessionId: "123" },
+        { chainId: chainId.toString(), contractAddress, sessionId },
         {
           onData: (obj) => {
             updateOutput(obj);

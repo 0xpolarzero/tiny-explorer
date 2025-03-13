@@ -9,8 +9,10 @@ type State = {
   chainId: number;
   contractAddress: Address | undefined;
   getCurrentChain: () => Common;
-
   update: (chain: Common, contractAddress: Address) => void;
+
+  sessionId: string | undefined;
+  setSessionId: (sessionId: string) => void;
 };
 
 export const useConfigStore = create<State>()(
@@ -27,6 +29,9 @@ export const useConfigStore = create<State>()(
       },
 
       update: (chain: Common, contractAddress: Address) => set({ chainId: chain.id, contractAddress }),
+
+      sessionId: undefined,
+      setSessionId: (sessionId: string) => set({ sessionId }),
     }),
     {
       name: "contract-storage",
