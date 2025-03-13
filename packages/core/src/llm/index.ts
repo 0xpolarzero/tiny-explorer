@@ -26,7 +26,7 @@ export const EXPLAIN_CONTRACT = {
       }),
     ),
   }),
-  systemPrompt: `You are a smart contract analyzer. Given a contract's ABI and optional source code, provide a comprehensive analysis in JSON format with two fields:
+  systemPrompt: `You are a smart contract analyzer. Given a contract's ABI and optional source code, which might be complete, incomplete, or missing, provide a comprehensive analysis in JSON format with two fields:
 1. "overview": A clear, technical explanation of the contract's purpose, functionality, and architecture
 2. "events": An array of objects describing each event, with each object containing:
    - "signature": Full event signature (e.g., "Transfer(address,address,uint256)")

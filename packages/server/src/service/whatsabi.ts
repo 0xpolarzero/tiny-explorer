@@ -1,8 +1,8 @@
-import { autoload, loaders } from "@shazow/whatsabi";
+import { autoload, interfaces, loaders } from "@shazow/whatsabi";
 import { createMemoryClient, http } from "tevm";
 
 import { getChainConfig } from "@core/chains";
-import { KNOWN_CONTRACTS } from "@core/llm/known-contracts";
+import { KNOWN_CONTRACTS, KNOWN_INTERFACES } from "@core/llm/known-contracts";
 import { GetContractInput, GetContractOutput } from "@core/llm/types";
 import { debug } from "@server/app/debug";
 
@@ -44,20 +44,21 @@ export class WhatsAbiService {
       );
 
       // Get the contract sources and ABI
-      const result = await autoload(contractAddress, {
+      const { abi, contractResult } = await autoload(contractAddress, {
         provider,
         abiLoader,
         followProxies: true,
         loadContractResult: true,
       });
 
-      const sources = await result.contractResult?.getSources?.();
+      const sources = await contractResult?.getSources?.();
 
       // Keep content of contracts we need to explain and direct explanation for known ones
       const refinedSources = sources
         ?.filter((s) => !ignoredSourcePaths.some((p) => s.path?.includes(p)))
         .map((s) => {
-          const knownContract = KNOWN_CONTRACTS.find((k) => s.path?.includes(k.path));
+          const knownContract = KNOWN_CONTRACTS.concat(KNOWN_INTERFACES).find((k) => s.path?.includes(k.path));
+
           if (knownContract) {
             return {
               name: knownContract.name,
@@ -71,11 +72,28 @@ export class WhatsAbiService {
           };
         });
 
+      // If sources were not available, we can at least find out if it could detect some known interfaces
+      const knownInterfaces =
+        refinedSources?.length === 0
+          ? interfaces
+              .abiToInterfaces(abi)
+              .map((i) => {
+                const knownInterface = KNOWN_INTERFACES.find((k) => k.name === i);
+                if (knownInterface) {
+                  return {
+                    name: knownInterface.name,
+                    explanation: knownInterface.explanation,
+                  };
+                }
+              })
+              .filter((i) => i !== undefined)
+          : undefined;
+
       debug("Retrieved contract details", chainId, contractAddress);
       return {
-        abi: result.abi,
-        name: result.contractResult?.name ?? undefined,
-        sources: refinedSources,
+        abi: abi,
+        name: contractResult?.name ?? undefined,
+        sources: refinedSources ?? knownInterfaces,
       };
     } catch (err) {
       debug("Error in getContract", chainId, contractAddress, err);

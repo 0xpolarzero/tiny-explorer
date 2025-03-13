@@ -14,11 +14,6 @@ export const KNOWN_CONTRACTS = [
     explanation: "Extends AccessControl to enable enumerating the members assigned to each role.",
   },
   {
-    name: "IAccessControl",
-    path: "@openzeppelin/contracts/access/IAccessControl.sol",
-    explanation: "Defines the interface for role-based access control functionality.",
-  },
-  {
     name: "Ownable",
     path: "@openzeppelin/contracts/access/Ownable.sol",
     explanation:
@@ -62,28 +57,6 @@ export const KNOWN_CONTRACTS = [
     name: "GovernorTimelockControl",
     path: "@openzeppelin/contracts/governance/GovernorTimelockControl.sol",
     explanation: "Incorporates a timelock mechanism to delay the execution of approved governance proposals.",
-  },
-  {
-    name: "IERC1271",
-    path: "@openzeppelin/contracts/interfaces/IERC1271.sol",
-    explanation:
-      "Defines an interface for contracts that can validate signatures, useful for smart contract-based accounts.",
-  },
-  {
-    name: "IERC165",
-    path: "@openzeppelin/contracts/interfaces/IERC165.sol",
-    explanation: "Specifies the standard interface for contract interface detection (ERC165).",
-  },
-  {
-    name: "IERC1822",
-    path: "@openzeppelin/contracts/interfaces/IERC1822.sol",
-    explanation:
-      "Outlines the interface for the Universal Upgradeable Proxy Standard (UUPS), used for upgradeable contracts.",
-  },
-  {
-    name: "IERC2981",
-    path: "@openzeppelin/contracts/interfaces/IERC2981.sol",
-    explanation: "Specifies the NFT Royalty Standard interface for providing royalty payment information.",
   },
   {
     name: "MinimalForwarder",
@@ -232,12 +205,6 @@ export const KNOWN_CONTRACTS = [
       "A standard implementation of the ERC1155 multi-token standard that supports managing multiple token types in one contract.",
   },
   {
-    name: "IERC1155",
-    path: "@openzeppelin/contracts/token/ERC1155/IERC1155.sol",
-    explanation:
-      "Defines the interface for the ERC1155 multi-token standard, allowing for standard interactions with ERC1155 tokens.",
-  },
-  {
     name: "ERC1155Supply",
     path: "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol",
     explanation: "Extends ERC1155 by tracking the total supply for each token ID.",
@@ -326,11 +293,6 @@ export const KNOWN_CONTRACTS = [
     explanation: "Implements the ERC165 standard to allow contracts to declare and detect supported interfaces.",
   },
   {
-    name: "IERC165",
-    path: "@openzeppelin/contracts/utils/introspection/IERC165.sol",
-    explanation: "Defines the interface for ERC165, which is used to query a contract’s supported interfaces.",
-  },
-  {
     name: "ECDSA",
     path: "@openzeppelin/contracts/utils/cryptography/ECDSA.sol",
     explanation:
@@ -363,5 +325,46 @@ export const KNOWN_CONTRACTS = [
     path: "@openzeppelin/contracts/utils/Multicall.sol",
     explanation:
       "Enables batching multiple read-only function calls into a single call, improving efficiency for off-chain queries.",
+  },
+];
+
+export const KNOWN_INTERFACES = [
+  {
+    name: "IAccessControl",
+    path: "@openzeppelin/contracts/access/IAccessControl.sol",
+    explanation: "Defines the interface for role-based access control functionality.",
+  },
+  {
+    name: "IERC1271",
+    path: "@openzeppelin/contracts/interfaces/IERC1271.sol",
+    explanation:
+      "Defines an interface for contracts that can validate signatures, useful for smart contract-based accounts.",
+  },
+  {
+    name: "IERC165",
+    path: "@openzeppelin/contracts/interfaces/IERC165.sol",
+    explanation: "Specifies the standard interface for contract interface detection (ERC165).",
+  },
+  {
+    name: "IERC1822",
+    path: "@openzeppelin/contracts/interfaces/IERC1822.sol",
+    explanation:
+      "Outlines the interface for the Universal Upgradeable Proxy Standard (UUPS), used for upgradeable contracts.",
+  },
+  {
+    name: "IERC2981",
+    path: "@openzeppelin/contracts/interfaces/IERC2981.sol",
+    explanation: "Specifies the NFT Royalty Standard interface for providing royalty payment information.",
+  },
+  {
+    name: "IERC1155",
+    path: "@openzeppelin/contracts/token/ERC1155/IERC1155.sol",
+    explanation:
+      "Defines the interface for the ERC1155 multi-token standard, allowing for standard interactions with ERC1155 tokens.",
+  },
+  {
+    name: "IERC165",
+    path: "@openzeppelin/contracts/utils/introspection/IERC165.sol",
+    explanation: "Defines the interface for ERC165, which is used to query a contract’s supported interfaces.",
   },
 ];
