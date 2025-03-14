@@ -5,10 +5,12 @@ import { ExplainContractOutput } from "@core/llm/types";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { InlineCode } from "@/components/ui/inline-code";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useSearchStore } from "@/store/search";
 
+// TODO: slice signatures (functions and events) in trigger to fit available space
 export const ContractDetails: FC<{ className?: string }> = ({ className }) => {
   const { loading, error, output } = useSearchStore();
 
@@ -88,7 +90,7 @@ const OverviewSection = memo(({ overview }: { overview: string }) => (
 ));
 
 const FunctionsSection = memo(({ functions }: { functions: ExplainContractOutput["functions"] }) => (
-  <Card className="flex w-full flex-col gap-4">
+  <Card className="flex w-full flex-col gap-4 xl:max-w-[676px]">
     <CardHeader>
       <CardTitle>Functions</CardTitle>
     </CardHeader>
@@ -98,16 +100,20 @@ const FunctionsSection = memo(({ functions }: { functions: ExplainContractOutput
           <AccordionItem key={`function-${func?.name || index}`} value={index.toString()} className="cursor-pointer">
             <AccordionTrigger className="cursor-pointer gap-2">
               <span className="text-sm font-medium">{func?.name}</span>
-              <div className="hidden w-fit flex-1 md:block">
-                <code className="bg-muted/70 rounded px-2 py-1 font-mono text-xs">{func?.signature}</code>
+              <div className="hidden w-fit flex-1 md:inline">
+                <InlineCode>
+                  {func?.signature.slice(0, 70)}
+                  {func?.signature.length > 70 && "..."}
+                </InlineCode>
               </div>
 
               {func?.visibility?.length > 0 && (
                 <div className="flex flex-wrap gap-2">
                   {func?.visibility.map((v) => (
                     <Badge
+                      key={v}
                       variant={v !== "internal" && v !== "private" ? "default" : "outline"}
-                      className="hidden md:block"
+                      className="hidden md:inline"
                     >
                       {v}
                     </Badge>
@@ -116,13 +122,13 @@ const FunctionsSection = memo(({ functions }: { functions: ExplainContractOutput
               )}
 
               {!!func?.modifiers?.length && (
-                <Badge variant="outline" className="hidden md:block">
+                <Badge variant="outline" className="hidden md:inline">
                   {"modifiers"}
                 </Badge>
               )}
 
               {!!func?.payable && (
-                <Badge variant="destructive" className="hidden md:block">
+                <Badge variant="destructive" className="hidden md:inline">
                   {"payable"}
                 </Badge>
               )}
@@ -168,7 +174,9 @@ const FunctionsSection = memo(({ functions }: { functions: ExplainContractOutput
                   <h4 className="mb-2 text-sm font-semibold">Visibility</h4>
                   <div className="flex flex-wrap gap-2">
                     {func.visibility.map((v) => (
-                      <Badge variant="outline">{v}</Badge>
+                      <Badge key={v} variant="outline">
+                        {v}
+                      </Badge>
                     ))}
                   </div>
                 </div>
@@ -206,7 +214,7 @@ const FunctionsSection = memo(({ functions }: { functions: ExplainContractOutput
 ));
 
 const EventsSection = memo(({ events }: { events: ExplainContractOutput["events"] }) => (
-  <Card className="flex w-full flex-col gap-4">
+  <Card className="flex w-full flex-col gap-4 xl:max-w-[676px]">
     <CardHeader>
       <CardTitle>Events</CardTitle>
     </CardHeader>
@@ -214,11 +222,14 @@ const EventsSection = memo(({ events }: { events: ExplainContractOutput["events"
       <Accordion type="single" collapsible>
         {events.map((event, index) => (
           <AccordionItem key={`event-${event?.name || index}`} value={index.toString()} className="cursor-pointer">
-            <AccordionTrigger className="cursor-pointer gap-2 md:grid md:grid-cols-[auto_1fr_auto]">
+            <AccordionTrigger className="cursor-pointer gap-2">
               <span className="text-sm font-medium">{event?.name}</span>
-              <code className="bg-muted/70 hidden w-fit rounded px-2 py-1 font-mono text-xs md:block">
-                {event?.signature}
-              </code>
+              <div className="hidden w-fit flex-1 md:inline">
+                <InlineCode>
+                  {event?.signature.slice(0, 70)}
+                  {event?.signature.length > 70 && "..."}
+                </InlineCode>
+              </div>
             </AccordionTrigger>
             <AccordionContent>
               <p className="mb-4 text-sm">{event?.description}</p>

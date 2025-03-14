@@ -1,8 +1,9 @@
 import { autoload, interfaces, loaders } from "@shazow/whatsabi";
 
 import { KNOWN_CONTRACTS, KNOWN_INTERFACES } from "@core/llm/known-contracts";
-import { ContractDetails, ExplainContractInput } from "@core/llm/types";
+import { ExplainContractInput } from "@core/llm/types";
 import { createTevmClient } from "@core/tevm";
+import { ContractDetails } from "@core/types";
 import { debug } from "@server/app/debug";
 
 const ignoredSourcePaths = ["metadata.json", "creator-tx-hash.txt", "immutable-references"];
@@ -42,7 +43,7 @@ export class WhatsAbiService {
       const { abi, contractResult } = await autoload(contractAddress, {
         provider,
         abiLoader,
-        followProxies: true,
+        followProxies: false,
         loadContractResult: true,
       });
 

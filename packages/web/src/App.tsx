@@ -1,5 +1,3 @@
-import { Toaster } from "sonner";
-
 import { Config } from "@/components/config";
 import { ContractDetails } from "@/components/contract-details";
 import { Footer } from "@/components/footer";
@@ -15,7 +13,6 @@ const App = () => {
   return (
     <ServerProvider>
       <ThemeProvider defaultTheme="dark" storageKey="tiny-explorer-theme">
-        <Toaster />
         <Wrapper>
           <Config />
           <Separator />

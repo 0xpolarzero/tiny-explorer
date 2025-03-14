@@ -51,15 +51,43 @@ export class TransactionService {
       return await Promise.all(
         transactions.map(async ({ hash, logs }) => {
           const tx = await client.getTransaction({ hash });
-          const txDetails = decodeFunctionData({ abi: input.abi, data: tx.input });
 
-          const logsDetails = logs.map((log) =>
-            decodeEventLog({
-              abi: input.abi,
-              topics: log.topics,
-              data: log.data,
-            }),
-          );
+          // Try to decode function data, but provide fallback if it fails
+          let txDetails;
+          try {
+            if (!tx.to) {
+              txDetails = {
+                functionName: "Deployment",
+                args: [],
+              };
+            } else {
+              txDetails = decodeFunctionData({ abi: input.abi, data: tx.input });
+            }
+          } catch (err) {
+            debug("Failed to decode function data", hash, err);
+            txDetails = {
+              functionName: tx.input.slice(0, 8),
+              args: undefined,
+            };
+          }
+
+          // Process logs, handling decoding failures for individual logs
+          const logsDetails = logs.map((log) => {
+            try {
+              return decodeEventLog({
+                abi: input.abi,
+                topics: log.topics,
+                data: log.data,
+              });
+            } catch (err) {
+              debug("Failed to decode event log", log.transactionHash, log.logIndex, err);
+              return {
+                // TODO: pass signature and data
+                eventName: "Unknown Event",
+                args: undefined,
+              };
+            }
+          });
 
           return {
             hash: tx.hash,

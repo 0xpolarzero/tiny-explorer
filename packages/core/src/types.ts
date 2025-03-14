@@ -42,14 +42,14 @@ export type TransactionDetails = {
   details: {
     tx: {
       functionName: string;
-      args: readonly unknown[] | undefined;
+      args?: readonly unknown[];
       from: Address;
       to: Address | null;
       value: string;
     };
     logs: Array<{
       eventName: string;
-      args: readonly unknown[] | undefined;
+      args?: readonly unknown[];
     }>;
   };
 };

@@ -19,7 +19,8 @@ export const useTransactions = () => {
         chainId: chainId.toString(),
         contractAddress,
       });
-      console.log(transactions);
+
+      setTransactions(transactions.sort((a, b) => Number(b.blockNumber) - Number(a.blockNumber)));
     } catch (e) {
       setError(true);
       console.error(e);
