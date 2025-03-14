@@ -7,7 +7,13 @@ export const useSearch = () => {
   const { explainContractStream } = useServer();
   const { subscriptionRef, setSubscription, setOutput, updateOutput, setLoading, setError } = useSearchStore();
 
-  const fetchContractDetails = async ({ onError }: { onError: (error: Error) => void }) => {
+  const fetchContractDetails = async ({
+    onComplete,
+    onError,
+  }: {
+    onComplete: () => void;
+    onError: (error: Error) => void;
+  }) => {
     if (!contractAddress || !sessionId) return;
 
     try {
@@ -32,6 +38,7 @@ export const useSearch = () => {
             setError(true);
           },
           onComplete: () => {
+            onComplete();
             setLoading(false);
             if (subscriptionRef) {
               subscriptionRef.unsubscribe();

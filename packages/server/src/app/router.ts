@@ -1,9 +1,11 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import { CreateFastifyContextOptions } from "@trpc/server/adapters/fastify";
 import { observable } from "@trpc/server/observable";
+import { Address, Hex, isAddress, isHex } from "tevm";
 import { z } from "zod";
 
-import { ExplainContractInput, ExplainContractOutput } from "@core/llm/types";
+import { ExplainContractInput, ExplainContractOutput, ExplainTransactionInput } from "@core/llm/types";
+import { ContractDetails, GetDecodedTransactionsInput, GetTransactionsInput } from "@core/types";
 import { Service } from "@server/service";
 import { COOKIE_NAME } from "@server/service/auth";
 
@@ -76,19 +78,23 @@ export function createAppRouter() {
       .input(
         z.object({
           chainId: z.string(),
-          contractAddress: z.string(),
+          contractAddress: z.string().refine(isAddress, { message: "Invalid address" }) as z.ZodType<Address>,
         }) satisfies z.ZodType<ExplainContractInput>,
       )
-      .mutation(async ({ ctx, input }) => await ctx.service.explainContract(input)),
+      .mutation(async ({ ctx, input }) => {
+        const { chainId, contractAddress } = input;
+        const contractDetails = await ctx.service.getContractDetails({ chainId, contractAddress });
+        return ctx.service.explainContract(input, contractDetails);
+      }),
 
     // TODO: Use protectedProcedure when we can handle cookies with websockets
     explainContractStream: t.procedure
       .input(
         z.object({
           chainId: z.string(),
-          contractAddress: z.string(),
+          contractAddress: z.string().refine(isAddress, { message: "Invalid address" }) as z.ZodType<Address>,
           sessionId: z.string(),
-        }) satisfies z.ZodType<ExplainContractInput>,
+        }) satisfies z.ZodType<ExplainContractInput & { sessionId: string }>,
       )
       .subscription(async ({ ctx, input }) => {
         // Return an empty observable if we already have a subscription for this session
@@ -149,6 +155,57 @@ export function createAppRouter() {
           });
         });
       }),
+
+    getTransactions: protectedProcedure
+      .input(
+        z.object({
+          chainId: z.string(),
+          contractAddress: z.string().refine(isAddress, { message: "Invalid address" }) as z.ZodType<Address>,
+          fromBlock: z.string().optional(),
+          toBlock: z.string().optional(),
+        }) satisfies z.ZodType<Omit<GetTransactionsInput, "abi">>,
+      )
+      .query(async ({ ctx, input }) => {
+        const contractDetails = await ctx.service.getContractDetails({
+          chainId: input.chainId,
+          contractAddress: input.contractAddress,
+        });
+        return ctx.service.getTransactions({ ...input, abi: contractDetails.abi });
+      }),
+
+    // This stream is intended to be started after explainContractStream has completed
+    // Meaning that incidentally, both the contract details and the contract explanation should be cached
+    // explainTransactionStream: t.procedure
+    //   .input(
+    //     z.object({
+    //       chainId: z.string(),
+    //       transactionHash: z.string().refine(isHex, { message: "Invalid transaction hash" }) as z.ZodType<Hex>,
+    //       sessionId: z.string(),
+    //     }) satisfies z.ZodType<ExplainTransactionInput & { sessionId: string }>,
+    //   )
+    //   .subscription(async ({ ctx, input }) => {
+    //     // 1. Get the transaction from the hash
+    //     // 2. Route differently if it's a contract interaction or not (to get contract details + explain or not)
+    //     // 3. Stream explanation
+    //     const { chainId, transactionHash } = input;
+
+    //     let contractDetails: ContractDetails | undefined;
+    //     try {
+    //         contractDetails = await ctx.service.getContractDetails({ chainId, contractAddress });
+    //       } catch (err) {
+    //         return observable<Partial<ExplainEventOutput>, Error>((emit) => {
+    //           emit.error(err instanceof Error ? err : new Error(String(err)));
+    //           emit.complete();
+    //           return () => {};
+    //         });
+    //       }
+
+    //       const contractExplanation =
+    //         (await ctx.service.explainContractFromCache(input)) ??
+    //         (await ctx.service.explainContract(input, contractDetails));
+
+    //       return ctx.service.subscribeLogs({ chainId, contractAddress, abi });
+    //     }),
   });
 }
 

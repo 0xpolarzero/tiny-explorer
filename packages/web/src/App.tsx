@@ -3,6 +3,7 @@ import { Toaster } from "sonner";
 import { Config } from "@/components/config";
 import { ContractDetails } from "@/components/contract-details";
 import { Footer } from "@/components/footer";
+import { TransactionsTable } from "@/components/transactions-table";
 import { Separator } from "@/components/ui/separator";
 import { Wrapper } from "@/components/wrapper";
 import { ServerProvider } from "@/providers/server-provider";
@@ -19,6 +20,7 @@ const App = () => {
           <Config />
           <Separator />
           <ContractDetails className="flex-1" />
+          <TransactionsTable />
           <Footer />
         </Wrapper>
       </ThemeProvider>

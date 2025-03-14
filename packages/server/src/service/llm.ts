@@ -2,14 +2,9 @@ import { createOpenRouter, OpenRouterProvider } from "@openrouter/ai-sdk-provide
 import { generateObject, streamObject } from "ai";
 import { z } from "zod";
 
-import { EXPLAIN_CONTRACT, EXPLAIN_EVENT } from "@core/llm";
-import {
-  ExplainContractOutput,
-  ExplainEventInput,
-  ExplainEventOutput,
-  GetContractOutput,
-  StreamCallbacks,
-} from "@core/llm/types";
+import { EXPLAIN_CONTRACT, EXPLAIN_TRANSACTION } from "@core/llm";
+import { ExplainContractOutput, ExplainTransactionOutput, StreamCallbacks } from "@core/llm/types";
+import { ContractDetails, TransactionDetails } from "@core/types";
 
 export type LLMServiceOptions = {
   model: string;
@@ -25,38 +20,37 @@ export class LLMService {
     });
   }
 
-  async explainEvent(input: ExplainContractOutput & ExplainEventInput) {
-    const eventInfo = input.events.find((e) => e.name === input.event.name);
-    if (!eventInfo) throw new Error("Event not found"); // TODO: this means there is a prompting or other issue we need to handle
-
-    return await this.generate(
-      EXPLAIN_EVENT.systemPrompt,
-      EXPLAIN_EVENT.outputSchema,
-      JSON.stringify({ event: input.event, eventInfo }),
-    );
-  }
-
-  async explainContract(input: GetContractOutput) {
+  async explainContract(input: ContractDetails) {
     return await this.generate(EXPLAIN_CONTRACT.systemPrompt, EXPLAIN_CONTRACT.outputSchema, JSON.stringify(input));
   }
 
-  explainEventStream(
-    input: ExplainContractOutput & ExplainEventInput,
-    callbacks: StreamCallbacks<ExplainEventOutput>,
-  ): () => void {
-    const eventInfo = input.events.find((e) => e.name === input.event.name);
-    if (!eventInfo) throw new Error("Event not found"); // TODO: this means there is a prompting or other issue we need to handle
+  explainContractStream(input: ContractDetails, callbacks: StreamCallbacks<ExplainContractOutput>): () => void {
+    return this.stream(EXPLAIN_CONTRACT.systemPrompt, EXPLAIN_CONTRACT.outputSchema, JSON.stringify(input), callbacks);
+  }
 
-    return this.stream(
-      EXPLAIN_EVENT.systemPrompt,
-      EXPLAIN_EVENT.outputSchema,
-      JSON.stringify({ event: input.event, eventInfo }),
-      callbacks,
+  async explainTransaction(input: TransactionDetails, contractExplanation: ExplainContractOutput) {
+    return await this.generate(
+      EXPLAIN_TRANSACTION.systemPrompt,
+      EXPLAIN_TRANSACTION.outputSchema,
+      // TODO: pass contract overview, function; pass events? Probably because event logs
+      // TODO: handle if it's not a contract interaction if we want to handle researching for an address
+      // JSON.stringify({ transaction: input.transaction, context: {} }),
+      "",
     );
   }
 
-  explainContractStream(input: GetContractOutput, callbacks: StreamCallbacks<ExplainContractOutput>): () => void {
-    return this.stream(EXPLAIN_CONTRACT.systemPrompt, EXPLAIN_CONTRACT.outputSchema, JSON.stringify(input), callbacks);
+  explainTransactionStream(
+    input: TransactionDetails,
+    contractExplanation: ExplainContractOutput,
+    callbacks: StreamCallbacks<ExplainTransactionOutput>,
+  ): () => void {
+    return this.stream(
+      EXPLAIN_TRANSACTION.systemPrompt,
+      EXPLAIN_TRANSACTION.outputSchema,
+      // JSON.stringify({ transaction: input.transaction, context: {} }),
+      "",
+      callbacks,
+    );
   }
 
   private async generate<S extends z.ZodSchema>(systemPrompt: string, schema: S, input: string): Promise<z.infer<S>> {

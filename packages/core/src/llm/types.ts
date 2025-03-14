@@ -1,34 +1,19 @@
-import { abi } from "@shazow/whatsabi";
+import { Address, Hex } from "tevm";
 import { z } from "zod";
 
-import { EXPLAIN_CONTRACT, EXPLAIN_EVENT } from "./index";
-
-export type GetContractInput = ExplainContractInput;
-export type GetContractOutput = {
-  abi: abi.ABI;
-  name?: string;
-  sources?: Array<
-    | {
-        name: string;
-        content: string;
-      }
-    | {
-        name: string;
-        explanation: string;
-      }
-  >;
-};
+import { EXPLAIN_CONTRACT, EXPLAIN_TRANSACTION } from "@core/llm/index";
 
 export type ExplainContractInput = {
   chainId: string;
-  contractAddress: string;
+  contractAddress: Address;
 };
 
-export type ExplainEventInput = ExplainContractInput & {
-  event: { name: string }; // TODO: what comes from the event listener
+export type ExplainTransactionInput = {
+  chainId: string;
+  transactionHash: Hex;
 };
 
-export type ExplainEventOutput = z.infer<typeof EXPLAIN_EVENT.outputSchema>;
+export type ExplainTransactionOutput = z.infer<typeof EXPLAIN_TRANSACTION.outputSchema>;
 export type ExplainContractOutput = z.infer<typeof EXPLAIN_CONTRACT.outputSchema>;
 
 export type StreamCallbacks<T> = {

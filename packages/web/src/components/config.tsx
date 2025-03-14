@@ -14,6 +14,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useSearch } from "@/hooks/use-search";
+import { useTransactions } from "@/hooks/use-transactions";
 import { cn } from "@/lib/utils";
 import { useConfigStore } from "@/store/config";
 import { useSearchStore } from "@/store/search";
@@ -30,6 +31,7 @@ const FormSchema = z.object({
 export const Config = () => {
   const { chainId, contractAddress, update: updateStore } = useConfigStore();
   const { fetchContractDetails } = useSearch();
+  const { fetchTransactions } = useTransactions();
   const { loading } = useSearchStore();
 
   const form = useForm<z.infer<typeof FormSchema>>({
@@ -46,6 +48,9 @@ export const Config = () => {
 
     updateStore(chain, data.contractAddress);
     fetchContractDetails({
+      onComplete: () => {
+        fetchTransactions();
+      },
       onError: (err) =>
         toast.error("Failed to explain contract", {
           description: err.message,

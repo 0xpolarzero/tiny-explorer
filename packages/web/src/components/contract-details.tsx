@@ -11,7 +11,6 @@ import { useSearchStore } from "@/store/search";
 
 export const ContractDetails: FC<{ className?: string }> = ({ className }) => {
   const { loading, error, output } = useSearchStore();
-  console.log(output);
 
   if (error) {
     return (
