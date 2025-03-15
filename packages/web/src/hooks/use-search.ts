@@ -7,7 +7,7 @@ export const useSearch = () => {
   const { explainContractStream } = useServer();
   const { subscriptionRef, setSubscription, setOutput, updateOutput, setLoading, setError } = useSearchStore();
 
-  const fetchContractDetails = async ({
+  const subContractExplanation = async ({
     onComplete,
     onError,
   }: {
@@ -49,14 +49,14 @@ export const useSearch = () => {
       );
 
       setSubscription(sub);
-    } catch (e) {
+    } catch (err) {
       setError(true);
-      console.error(e);
-      onError(e instanceof Error ? e : new Error("Unknown error"));
+      console.error(err);
+      onError(err instanceof Error ? err : new Error("Unknown error"));
     }
   };
 
   return {
-    fetchContractDetails,
+    subContractExplanation,
   };
 };

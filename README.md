@@ -114,6 +114,7 @@ Future development plans:
   - use caching for contract code & abi
 - add lm studio running in docker instead of deep infra https://gitlab.com/logliwo/lm-studio-docker-compose/-/tree/main?ref_type=heads (??)
 - update server to use serverless
+- the cache is not a database; a lot of stuff needs to be saved into a database instead (e.g. transaction details, transaction explanations)
 
 (later)
 

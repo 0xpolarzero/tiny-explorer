@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import {
   flexRender,
   getCoreRowModel,
@@ -9,11 +9,13 @@ import {
   useReactTable,
   type ColumnDef,
 } from "@tanstack/react-table";
-import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp } from "lucide-react";
+import { AlertCircle, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+
+import { Badge } from "./badge";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -22,7 +24,12 @@ interface DataTableProps<TData, TValue> {
   pageSize?: number;
   pageSizeOptions?: number[];
   expandContent?: (row: TData) => React.ReactNode;
+  onExpand?: (index: number) => void;
   noDataLabel?: string;
+  error?: boolean;
+  errorLabel?: string;
+  loading?: boolean;
+  loadingLabel?: string;
 }
 
 export function DataTable<TData, TValue>({
@@ -32,7 +39,12 @@ export function DataTable<TData, TValue>({
   pageSize = 10,
   pageSizeOptions = [5, 10, 20, 50],
   expandContent,
+  onExpand,
   noDataLabel = "No results.",
+  error = false,
+  errorLabel = "Error loading data.",
+  loading = false,
+  loadingLabel = "Loading...",
 }: DataTableProps<TData, TValue>) {
   const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({});
 
@@ -52,6 +64,7 @@ export function DataTable<TData, TValue>({
             size="sm"
             onClick={(e) => {
               e.stopPropagation();
+              onExpand?.(row.index);
               setExpandedRows((prev) => ({
                 ...prev,
                 [row.id]: !prev[row.id],
@@ -102,9 +115,8 @@ export function DataTable<TData, TValue>({
                 const isExpanded = expandedRows[row.id] || false;
 
                 return (
-                  <>
+                  <Fragment key={row.id}>
                     <TableRow
-                      key={row.id}
                       data-state={row.getIsSelected() && "selected"}
                       className={isExpanded ? "bg-muted/20 hover:bg-muted/20 border-b-0" : "hover:bg-muted/20"}
                     >
@@ -119,13 +131,19 @@ export function DataTable<TData, TValue>({
                         </TableCell>
                       </TableRow>
                     )}
-                  </>
+                  </Fragment>
                 );
               })
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                  {noDataLabel}
+                  <div className="flex justify-center">
+                    <Badge variant={loading ? "outline" : "secondary"} className="flex items-center gap-2">
+                      {loading && <Loader2 className="h-3 w-3 animate-spin" />}
+                      {error && <AlertCircle className="h-3 w-3" />}
+                      {loading ? loadingLabel : error ? errorLabel : noDataLabel}
+                    </Badge>
+                  </div>
                 </TableCell>
               </TableRow>
             )}

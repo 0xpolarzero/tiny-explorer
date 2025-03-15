@@ -32,10 +32,7 @@ export class LLMService {
     return await this.generate(
       EXPLAIN_TRANSACTION.systemPrompt,
       EXPLAIN_TRANSACTION.outputSchema,
-      // TODO: pass contract overview, function; pass events? Probably because event logs
-      // TODO: handle if it's not a contract interaction if we want to handle researching for an address
-      // JSON.stringify({ transaction: input.transaction, context: {} }),
-      "",
+      JSON.stringify({ transaction: input, contractExplanation }),
     );
   }
 
@@ -47,8 +44,7 @@ export class LLMService {
     return this.stream(
       EXPLAIN_TRANSACTION.systemPrompt,
       EXPLAIN_TRANSACTION.outputSchema,
-      // JSON.stringify({ transaction: input.transaction, context: {} }),
-      "",
+      JSON.stringify({ transaction: input, contractExplanation }),
       callbacks,
     );
   }

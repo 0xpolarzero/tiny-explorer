@@ -2,6 +2,7 @@ import { getCacheKey } from "@core/cache";
 import {
   ExplainContractInput,
   ExplainContractOutput,
+  ExplainTransactionInput,
   ExplainTransactionOutput,
   StreamCallbacks,
 } from "@core/llm/types";
@@ -57,11 +58,13 @@ export class Service {
    */
   async explainContract(input: ExplainContractInput, contractDetails: ContractDetails): Promise<ExplainContractOutput> {
     try {
+      const cached = await this.getCachedContractExplanation(input);
+      if (cached) return cached;
+
       const result = await this.llm.explainContract(contractDetails);
 
       // Store in cache
-      const cacheKey = getCacheKey.explainContract(input);
-      await this.cache.set(cacheKey, result);
+      await this.cache.set(getCacheKey.explainContract(input), result);
 
       return result;
     } catch (err) {
@@ -78,12 +81,12 @@ export class Service {
    * @param contractExplanation - The explanation of the target contract
    * @returns A concise explanation of the event considering the contract details
    */
-  async explainTransaction(
-    input: TransactionDetails,
-    contractExplanation: ExplainContractOutput,
-  ): Promise<ExplainTransactionOutput> {
-    return await this.llm.explainTransaction(input, contractExplanation);
-  }
+  // async explainTransaction(
+  //   input: TransactionDetails,
+  //   contractExplanation: ExplainContractOutput,
+  // ): Promise<ExplainTransactionOutput> {
+  //   return await this.llm.explainTransaction(input, contractExplanation);
+  // }
 
   explainContractStream(
     input: ExplainContractInput,
@@ -99,7 +102,7 @@ export class Service {
     });
   }
 
-  async explainContractFromCache(input: ExplainContractInput): Promise<ExplainContractOutput | undefined> {
+  async getCachedContractExplanation(input: ExplainContractInput): Promise<ExplainContractOutput | undefined> {
     const cacheKey = getCacheKey.explainContract(input);
 
     try {
@@ -112,7 +115,7 @@ export class Service {
       debug("Cache miss for key:", cacheKey);
       return undefined;
     } catch (err) {
-      debug("Error in explainContractFromCache:", err);
+      debug("Error in getCachedContractExplanation:", err);
       return undefined;
     }
   }
@@ -135,8 +138,35 @@ export class Service {
     }
   }
 
-  async getTransactions(input: GetTransactionsInput): Promise<Array<TransactionDetails>> {
-    return await this.transaction.getTransactions(input);
+  // from block to block -> logs -> transactions -> transaction details
+  async getTransactionsByPeriod(input: GetTransactionsInput): Promise<Array<TransactionDetails>> {
+    const txs = await this.transaction.getTransactionsByPeriod(input);
+
+    // Save transactions to cache
+    // TODO: save to a database when implemented
+    await Promise.all(txs.map((tx) => this.cache.set(getCacheKey.getTransactionDetails(tx.hash), tx)));
+
+    return txs;
+  }
+
+  // hash -> transaction + logs -> transaction details
+  async getTransactionByHash(input: ExplainTransactionInput & ContractDetails): Promise<TransactionDetails> {
+    try {
+      const cacheKey = getCacheKey.getTransactionDetails(input.transactionHash);
+      const cached = await this.cache.get<TransactionDetails>(cacheKey);
+      if (cached) {
+        debug("Cache hit for key:", cacheKey);
+        return cached;
+      }
+
+      const tx = await this.transaction.getTransactionByHash(input);
+      await this.cache.set(cacheKey, tx);
+
+      return tx;
+    } catch (err) {
+      debug("Error in getTransactionByHash:", err);
+      throw err;
+    }
   }
 
   explainTransactionStream(
@@ -149,6 +179,24 @@ export class Service {
     } catch (err) {
       debug("Error in explainEventStream:", err);
       throw err;
+    }
+  }
+
+  async getCachedTransactionExplanation(input: ExplainTransactionInput): Promise<ExplainTransactionOutput | undefined> {
+    const cacheKey = getCacheKey.getTransactionExplanation(input.transactionHash);
+
+    try {
+      const cached = await this.cache.get<ExplainTransactionOutput>(cacheKey);
+      if (cached) {
+        debug("Cache hit for key:", cacheKey);
+        return cached;
+      }
+
+      debug("Cache miss for key:", cacheKey);
+      return undefined;
+    } catch (err) {
+      debug("Error in getCachedTransactionExplanation:", err);
+      return undefined;
     }
   }
 

@@ -1,29 +1,19 @@
 import { abi } from "@shazow/whatsabi";
-import { AbiFunction, Address, decodeEventLog, decodeFunctionData } from "tevm";
-import { Log } from "tevm/actions";
+import { AbiFunction, decodeEventLog, decodeFunctionData } from "tevm";
+import { Log, Transaction } from "viem";
 
 import { createTevmClient } from "@core/tevm";
-import { GetTransactionsInput, TransactionDetails, TransactionRaw } from "@core/types";
+import { GetTransactionInput, GetTransactionsInput, TransactionDetails, TransactionRaw } from "@core/types";
 import { bigIntReplacer } from "@core/utils";
 import { debug } from "@server/app/debug";
 
 export type TransactionServiceOptions = {};
 
-export type SubscribeLogsInput = {
-  chainId: number | string;
-  contractAddress: Address;
-  abi: abi.ABI;
-  callbacks: {
-    onLogs: (logs: Array<Log>) => void;
-    onError: (err: Error) => void;
-  };
-};
-
 // TODO: for subscription: https://www.tevm.sh/core/tevm-node-interface#receipt--log-management
 export class TransactionService {
   constructor(config: TransactionServiceOptions) {}
 
-  async getTransactions(input: GetTransactionsInput): Promise<Array<TransactionDetails>> {
+  async getTransactionsByPeriod(input: GetTransactionsInput): Promise<Array<TransactionDetails>> {
     const client = createTevmClient({ chainId: input.chainId });
 
     try {
@@ -52,79 +42,7 @@ export class TransactionService {
       return await Promise.all(
         transactions.map(async ({ hash, logs }) => {
           const tx = await client.getTransaction({ hash });
-
-          // Try to decode function data, but provide fallback if it fails
-          let txDetails;
-          try {
-            if (!tx.to) {
-              txDetails = {
-                functionName: "Deployment",
-                data: tx.input,
-                args: {},
-              };
-            } else {
-              const { functionName, args } = decodeFunctionData({ abi: input.abi, data: tx.input });
-              const functionDef = input.abi.find((item) => item.name === functionName) as AbiFunction;
-
-              txDetails = {
-                functionName,
-                data: tx.input,
-                // Create an object { [argName]: argValue } from the args
-                args: args
-                  ? Object.fromEntries(
-                      bigIntReplacer(args).map((arg, index) => [functionDef.inputs[index]?.name ?? index, arg]),
-                    )
-                  : {},
-              };
-            }
-          } catch (err) {
-            debug("Failed to decode function data", hash, err);
-            txDetails = {
-              functionName: tx.input.slice(0, 8),
-              data: tx.input,
-              args: undefined,
-            };
-          }
-
-          // Process logs, handling decoding failures for individual logs
-          const logsDetails = logs.map((log) => {
-            try {
-              const { eventName, args } = decodeEventLog({
-                abi: input.abi,
-                topics: log.topics,
-                data: log.data,
-              });
-
-              return {
-                eventName: eventName as unknown as string,
-                data: log.data,
-                // TODO: Why do we have to change the type here, as without the abi it considers `args` as unknown[]
-                args: bigIntReplacer(args as Record<string, any>),
-              };
-            } catch (err) {
-              debug("Failed to decode event log", log.transactionHash, log.logIndex, err);
-              return {
-                // TODO: pass signature and data
-                eventName: "Unknown Event",
-                data: log.data,
-                args: undefined,
-              };
-            }
-          });
-
-          return {
-            hash: tx.hash,
-            blockNumber: bigIntReplacer(tx.blockNumber),
-            details: {
-              tx: {
-                ...txDetails,
-                from: tx.from,
-                to: tx.to,
-                value: bigIntReplacer(tx.value),
-              },
-              logs: logsDetails,
-            },
-          };
+          return this.decodeTransaction(tx, logs, input.abi);
         }),
       );
     } catch (err) {
@@ -133,14 +51,93 @@ export class TransactionService {
     }
   }
 
-  async subscribeLogs({ chainId, contractAddress, abi, callbacks: { onLogs, onError } }: SubscribeLogsInput) {
-    const client = createTevmClient({ chainId });
+  async getTransactionByHash(input: GetTransactionInput): Promise<TransactionDetails> {
+    const client = createTevmClient({ chainId: input.chainId });
 
-    return client.watchContractEvent({
-      address: contractAddress,
-      abi,
-      onLogs,
-      onError,
+    try {
+      const [tx, receipt] = await Promise.all([
+        client.getTransaction({ hash: input.transactionHash }),
+        client.getTransactionReceipt({ hash: input.transactionHash }),
+      ]);
+
+      return this.decodeTransaction(tx, receipt.logs, input.abi);
+    } catch (err) {
+      debug("Error getting transaction", err);
+      throw err;
+    }
+  }
+
+  private async decodeTransaction(tx: Transaction, logs: Array<Log>, abi: abi.ABI): Promise<TransactionDetails> {
+    // Try to decode function data, but provide fallback if it fails
+    let txDetails;
+    try {
+      if (!tx.to) {
+        txDetails = {
+          functionName: "Deployment",
+          data: tx.input,
+          args: {},
+        };
+      } else {
+        const { functionName, args } = decodeFunctionData({ abi, data: tx.input });
+        const functionDef = abi.find((item) => item.name === functionName) as AbiFunction;
+
+        txDetails = {
+          functionName,
+          data: tx.input,
+          // Create an object { [argName]: argValue } from the args
+          args: args
+            ? Object.fromEntries(
+                bigIntReplacer(args).map((arg, index) => [functionDef.inputs[index]?.name ?? index, arg]),
+              )
+            : {},
+        };
+      }
+    } catch (err) {
+      debug("Failed to decode function data", tx.hash, err);
+      txDetails = {
+        functionName: tx.input.slice(0, 8),
+        data: tx.input,
+        args: undefined,
+      };
+    }
+
+    // Process logs, handling decoding failures for individual logs
+    const logsDetails = logs.map((log) => {
+      try {
+        const { eventName, args } = decodeEventLog({
+          abi,
+          topics: log.topics,
+          data: log.data,
+        });
+
+        return {
+          eventName: eventName as unknown as string,
+          data: log.data,
+          // TODO: Why do we have to change the type here, as without the abi it considers `args` as unknown[]
+          args: bigIntReplacer(args as Record<string, any>),
+        };
+      } catch (err) {
+        debug("Failed to decode event log", log.transactionHash, log.logIndex, err);
+        return {
+          eventName: "Unknown Event",
+          data: log.data,
+          args: undefined,
+        };
+      }
     });
+
+    return {
+      hash: tx.hash,
+      blockNumber: bigIntReplacer(tx.blockNumber ?? "0"),
+      details: {
+        tx: {
+          ...txDetails,
+          from: tx.from,
+          to: tx.to,
+          value: bigIntReplacer(tx.value),
+        },
+        logs: logsDetails,
+      },
+    };
   }
 }

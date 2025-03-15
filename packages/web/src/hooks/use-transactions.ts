@@ -4,7 +4,7 @@ import { useTransactionsStore } from "@/store/transactions";
 
 export const useTransactions = () => {
   const { chainId, contractAddress } = useConfigStore();
-  const { getTransactions } = useServer();
+  const { getTransactionsByPeriod } = useServer();
   const { setTransactions, setLoading, setError } = useTransactionsStore();
 
   const fetchTransactions = async () => {
@@ -15,12 +15,13 @@ export const useTransactions = () => {
       setLoading(true);
       setError(false);
 
-      const transactions = await getTransactions.query({
+      const transactions = await getTransactionsByPeriod.query({
         chainId: chainId.toString(),
         contractAddress,
       });
 
       setTransactions(transactions.sort((a, b) => Number(b.blockNumber) - Number(a.blockNumber)));
+      setLoading(false);
     } catch (e) {
       setError(true);
       console.error(e);

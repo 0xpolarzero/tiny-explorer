@@ -215,119 +215,207 @@ Example output:
 };
 
 /* --------------------------- EXPLAIN TRANSACTION -------------------------- */
-// TODO: replace event with transaction
 export const EXPLAIN_TRANSACTION = {
   outputSchema: z.object({
     summary: z.string(),
     details: z.object({
-      parameters: z.array(
+      functionCall: z.object({
+        name: z.string(),
+        description: z.string(),
+        arguments: z.array(
+          z.object({
+            name: z.string(),
+            value: z.string(),
+            analysis: z.string(),
+          }),
+        ),
+      }),
+      emittedEvents: z.array(
         z.object({
           name: z.string(),
-          value: z.string(),
-          analysis: z.string(),
+          significance: z.string(),
+          parameters: z.array(
+            z.object({
+              name: z.string(),
+              value: z.string(),
+              analysis: z.string(),
+            }),
+          ),
         }),
       ),
-      context: z.object({
-        transaction: z.string(),
-        block: z.number(),
-        type: z.string(),
-      }),
       stateChanges: z.array(z.string()),
+      value: z.object({
+        amount: z.string(),
+        significance: z.string(),
+      }),
+      context: z.object({
+        blockNumber: z.number(),
+        from: z.string(),
+        to: z.string(),
+      }),
       securityAnalysis: z.string(),
-      relatedActions: z.array(z.string()),
       businessImpact: z.string(),
     }),
   }),
-  systemPrompt: `You are a smart contract event analyzer. Given an event's occurrence details and its definition, explain what happened in JSON format with two fields:
-1. "summary": A concise, human-readable explanation of what this event represents
+  systemPrompt: `You are a blockchain transaction analyzer. Given transaction details and contract context, explain what happened in JSON format with two fields:
+1. "summary": A concise, human-readable explanation of what this transaction accomplished (2-3 sentences max)
 2. "details": A technical breakdown including:
-   - Exact values and meaning of all parameters
-   - Transaction context
-   - State changes
+   - Function called with arguments and their significance
+   - Events emitted and their meaning in this context
+   - State changes that occurred
+   - ETH value transferred (if any)
+   - Transaction context (block, sender, receiver)
    - Security implications
-   - Related events or actions
    - Business impact
+
+Focus on what THIS SPECIFIC TRANSACTION did, not general descriptions of the contract or functions. Assume the user already has access to the contract's full documentation.
 
 Format your response as a valid JSON object.
 
 Example input:
 
 {
-  "event": {
-    "name": "Transfer",
-    "signature": "Transfer(address,address,uint256)",
-    "args": {
-      "from": "0x123...",
-      "to": "0x456...",
-      "value": "1000000000000000000"
-    },
-    "transactionHash": "0x789...",
-    "blockNumber": 12345678
+  "transaction": {
+    "hash": "0x123...",
+    "blockNumber": "14000000",
+    "details": {
+      "tx": {
+        "functionName": "transfer",
+        "data": "0x...",
+        "args": {
+          "to": "0x456...",
+          "value": "1000000000000000000"
+        },
+        "from": "0x789...",
+        "to": "0xabc...",
+        "value": "0"
+      },
+      "logs": [
+        {
+          "eventName": "Transfer",
+          "data": "0x...",
+          "args": {
+            "from": "0x789...",
+            "to": "0x456...",
+            "value": "1000000000000000000"
+          }
+        }
+      ]
+    }
   },
-  "eventInfo": {
-    "name": "Transfer",
-    "description": "Emitted when tokens are transferred between addresses",
-    "parameters": [
+  "contractExplanation": {
+    "overview": "This is an ERC20 token contract...",
+    "functions": [
       {
-        "name": "from",
-        "type": "address",
-        "indexed": true,
-        "description": "The sender's address",
-        "significance": "Critical for tracking token source"
-      },
-      {
-        "name": "to",
-        "type": "address",
-        "indexed": true,
-        "description": "The recipient's address",
-        "significance": "Essential for tracking token destination"
-      },
-      {
-        "name": "value",
-        "type": "uint256",
-        "indexed": false,
-        "description": "The amount of tokens transferred",
-        "significance": "Represents the magnitude of the transfer"
+        "name": "transfer",
+        "description": "Transfers tokens from sender to recipient",
+        "parameters": [
+          {
+            "name": "to",
+            "type": "address",
+            "description": "Recipient address"
+          },
+          {
+            "name": "value",
+            "type": "uint256",
+            "description": "Amount to transfer"
+          }
+        ],
+        "visibility": ["public"],
+        "sideEffects": ["Decreases sender balance", "Increases recipient balance", "Emits Transfer event"]
       }
     ],
-    "contextualUsage": "Emitted in transfer(), transferFrom(), mint(), and burn() functions to track token movements",
-    "stateChanges": ["from.balance (decreased by value)", "to.balance (increased by value)"],
-    "securityConsiderations": ["Monitor for large transfers"],
-    "commonPatterns": ["Regular token transfers between users", "Token minting operations (from zero address)", "Token burning operations (to zero address)", "Batch operations in multi-transfers"]
+    "events": [
+      {
+        "name": "Transfer",
+        "description": "Emitted when tokens are transferred",
+        "parameters": [
+          {
+            "name": "from",
+            "type": "address",
+            "indexed": true,
+            "description": "Sender address",
+            "significance": "Source of tokens"
+          },
+          {
+            "name": "to",
+            "type": "address",
+            "indexed": true,
+            "description": "Recipient address",
+            "significance": "Destination of tokens"
+          },
+          {
+            "name": "value",
+            "type": "uint256",
+            "indexed": false,
+            "description": "Amount transferred",
+            "significance": "Quantity of tokens moved"
+          }
+        ]
+      }
+    ]
   }
 }
 
 Example output:
 
 {
-  "summary": "Transfer of 1e18 TOKEN from 0x123... to 0x456...",
+  "summary": "This transaction transferred 1e18 TOKEN from 0x789... to 0x456... via the ERC20 transfer function. The operation completed successfully with no ETH value transferred.",
   "details": {
-    "parameters": {
-      "from": {
-        "value": "0x123...",
-        "analysis": "Regular user address (not a contract or special address)"
-      },
-      "to": {
-        "value": "0x456...",
-        "analysis": "Regular user address (not a contract or special address)"
-      },
-      "value": {
-        "value": "1000000000000000000",
-        "analysis": "Standard transfer amount (1e18 TOKEN)"
+    "functionCall": {
+      "name": "transfer",
+      "description": "Standard ERC20 token transfer",
+      "arguments": [
+        {
+          "name": "to",
+          "value": "0x456...",
+          "analysis": "Recipient address, most likely an EOA"
+        },
+        {
+          "name": "value",
+          "value": "1000000000000000000",
+          "analysis": "1 TOKEN (assuming 18 decimals)"
+        }
+      ]
+    },
+    "emittedEvents": [
+      {
+        "name": "Transfer",
+        "significance": "Confirms the token transfer was recorded on-chain",
+        "parameters": [
+          {
+            "name": "from",
+            "value": "0x789...",
+            "analysis": "Sender's address (transaction initiator)"
+          },
+          {
+            "name": "to",
+            "value": "0x456...",
+            "analysis": "Recipient's address"
+          },
+          {
+            "name": "value",
+            "value": "1000000000000000000",
+            "analysis": "1 TOKEN (assuming 18 decimals)"
+          }
+        ]
       }
-    },
-    "context": {
-      "transaction": "0x789...",
-      "block": 12345678,
-      "type": "Standard Transfer"
-    },
+    ],
     "stateChanges": [
-      "Sender 0x123... balance decreased by 1e18 TOKEN",
+      "Sender 0x789... balance decreased by 1e18 TOKEN",
       "Recipient 0x456... balance increased by 1e18 TOKEN"
     ],
-    "securityAnalysis": "Regular transfer amount, no suspicious patterns detected",
-    "relatedActions": "Direct transfer call, no additional approvals or hooks triggered",
-    "businessImpact": "Standard token movement between addresses, no special implications"
+    "value": {
+      "amount": "0",
+      "significance": "No ETH was transferred in this transaction, only tokens"
+    },
+    "context": {
+      "blockNumber": 14000000,
+      "from": "0x789...",
+      "to": "0xabc... (token contract)"
+    },
+    "securityAnalysis": "Standard token transfer with no unusual patterns. The transaction sender matches the token sender, indicating a direct transfer rather than an approved transfer.",
+    "businessImpact": "Simple value transfer between two addresses, possibly representing a payment, gift, or other token movement between parties."
   }
 }`,
 };

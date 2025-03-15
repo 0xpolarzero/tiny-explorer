@@ -30,7 +30,7 @@ const FormSchema = z.object({
 
 export const Config = () => {
   const { chainId, contractAddress, update: updateStore } = useConfigStore();
-  const { fetchContractDetails } = useSearch();
+  const { subContractExplanation } = useSearch();
   const { fetchTransactions } = useTransactions();
   const { loading } = useSearchStore();
 
@@ -47,7 +47,7 @@ export const Config = () => {
     if (!chain) throw new Error("Chain not found");
 
     updateStore(chain, data.contractAddress);
-    fetchContractDetails({
+    subContractExplanation({
       onComplete: () => {
         fetchTransactions();
       },

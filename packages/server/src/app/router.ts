@@ -4,8 +4,13 @@ import { observable } from "@trpc/server/observable";
 import { Address, Hex, isAddress, isHex } from "tevm";
 import { z } from "zod";
 
-import { ExplainContractInput, ExplainContractOutput, ExplainTransactionInput } from "@core/llm/types";
-import { ContractDetails, GetDecodedTransactionsInput, GetTransactionsInput } from "@core/types";
+import {
+  ExplainContractInput,
+  ExplainContractOutput,
+  ExplainTransactionInput,
+  ExplainTransactionOutput,
+} from "@core/llm/types";
+import { ContractDetails, GetTransactionsInput, TransactionDetails } from "@core/types";
 import { Service } from "@server/service";
 import { COOKIE_NAME } from "@server/service/auth";
 
@@ -20,6 +25,7 @@ export type AppContext = {
 // there is only one subscription and observable.
 // TODO: This is awful, we need to fix this sometime but will need to post the issue as it doesn't seem to exist online.
 const contractSubscriptions = new Set<string>(); // set of sessionIds with an active contract subscription
+const transactionSubscriptions = new Set<string>(); // set of sessionIds-txHash with an active transaction subscription
 
 /**
  * Creates and configures the main tRPC router with all API endpoints.
@@ -106,36 +112,31 @@ export function createAppRouter() {
         }
 
         contractSubscriptions.add(input.sessionId);
-        const cached = await ctx.service.explainContractFromCache(input);
 
-        // Retrieve contract details if we couldn't get a cached explanation
-        let error: Error | undefined;
-        const contractDetails = cached
-          ? undefined
-          : await ctx.service.getContractDetails(input).catch((err) => {
-              error = err instanceof Error ? err : new Error(String(err));
-              return undefined;
-            });
-
-        return observable<Partial<ExplainContractOutput>, Error>((emit) => {
-          // Return the cached explanation if it exists without streaming
-          if (cached) {
+        const cached = await ctx.service.getCachedContractExplanation(input);
+        if (cached) {
+          return observable<Partial<ExplainContractOutput>, Error>((emit) => {
             emit.next(cached);
             emit.complete();
             contractSubscriptions.delete(input.sessionId);
-
             return () => {};
-          }
+          });
+        }
 
-          // Emit the error if we couldn't get contract details
-          if (error) {
-            emit.error(error);
+        // Retrieve contract details if we couldn't get a cached explanation
+        let contractDetails: ContractDetails | undefined;
+        try {
+          contractDetails = await ctx.service.getContractDetails(input);
+        } catch (err) {
+          return observable<Partial<ExplainContractOutput>, Error>((emit) => {
+            emit.error(err instanceof Error ? err : new Error(String(err)));
             emit.complete();
             contractSubscriptions.delete(input.sessionId);
-
             return () => {};
-          }
+          });
+        }
 
+        return observable<Partial<ExplainContractOutput>, Error>((emit) => {
           // Otherwise, stream the explanation and return a cleanup function
           return ctx.service.explainContractStream(input, contractDetails!, {
             onProgress: (obj) => emit.next(obj),
@@ -150,13 +151,14 @@ export function createAppRouter() {
                   message: err.message,
                 }),
               );
+
               contractSubscriptions.delete(input.sessionId);
             },
           });
         });
       }),
 
-    getTransactions: protectedProcedure
+    getTransactionsByPeriod: protectedProcedure
       .input(
         z.object({
           chainId: z.string(),
@@ -170,42 +172,92 @@ export function createAppRouter() {
           chainId: input.chainId,
           contractAddress: input.contractAddress,
         });
-        return ctx.service.getTransactions({ ...input, abi: contractDetails.abi });
+        return ctx.service.getTransactionsByPeriod({ ...input, abi: contractDetails.abi });
       }),
 
     // This stream is intended to be started after explainContractStream has completed
     // Meaning that incidentally, both the contract details and the contract explanation should be cached
-    // explainTransactionStream: t.procedure
-    //   .input(
-    //     z.object({
-    //       chainId: z.string(),
-    //       transactionHash: z.string().refine(isHex, { message: "Invalid transaction hash" }) as z.ZodType<Hex>,
-    //       sessionId: z.string(),
-    //     }) satisfies z.ZodType<ExplainTransactionInput & { sessionId: string }>,
-    //   )
-    //   .subscription(async ({ ctx, input }) => {
-    //     // 1. Get the transaction from the hash
-    //     // 2. Route differently if it's a contract interaction or not (to get contract details + explain or not)
-    //     // 3. Stream explanation
-    //     const { chainId, transactionHash } = input;
+    // TODO: Use protectedProcedure when we can handle cookies with websockets
+    // 1. Get contract details (will hit cache if possible)
+    // 2. Get contract explanation (will hit cache if possible)
+    // 3. Get transaction details (will hit cache if possible)
+    // 4. Stream explanation
+    // Here again, we want to return a sync stream _after_ performing async operations
+    explainTransactionStream: t.procedure
+      .input(
+        z.object({
+          chainId: z.string(),
+          contractAddress: z.string().refine(isAddress, { message: "Invalid address" }) as z.ZodType<Address>,
+          transactionHash: z.string().refine(isHex, { message: "Invalid transaction hash" }) as z.ZodType<Hex>,
+          sessionId: z.string(),
+        }) satisfies z.ZodType<ExplainTransactionInput & { sessionId: string }>,
+      )
+      .subscription(async ({ ctx, input }) => {
+        // Return an empty observable if we already have a subscription for this session
+        // Since this is getting triggered twice, this second one will not tamper with the first one (the actual subscription)
+        if (transactionSubscriptions.has(`${input.sessionId}-${input.transactionHash}`)) {
+          return observable<Partial<ExplainTransactionOutput>, Error>(() => {
+            return () => {};
+          });
+        }
 
-    //     let contractDetails: ContractDetails | undefined;
-    //     try {
-    //         contractDetails = await ctx.service.getContractDetails({ chainId, contractAddress });
-    //       } catch (err) {
-    //         return observable<Partial<ExplainEventOutput>, Error>((emit) => {
-    //           emit.error(err instanceof Error ? err : new Error(String(err)));
-    //           emit.complete();
-    //           return () => {};
-    //         });
-    //       }
+        transactionSubscriptions.add(`${input.sessionId}-${input.transactionHash}`);
 
-    //       const contractExplanation =
-    //         (await ctx.service.explainContractFromCache(input)) ??
-    //         (await ctx.service.explainContract(input, contractDetails));
+        const { chainId, contractAddress, transactionHash } = input;
 
-    //       return ctx.service.subscribeLogs({ chainId, contractAddress, abi });
-    //     }),
+        // Attempt to get cached explanation first
+        const cached = await ctx.service.getCachedTransactionExplanation(input);
+        if (cached) {
+          return observable<Partial<ExplainTransactionOutput>, Error>((emit) => {
+            emit.next(cached);
+            emit.complete();
+            transactionSubscriptions.delete(`${input.sessionId}-${input.transactionHash}`);
+            return () => {};
+          });
+        }
+
+        let contractExplanation: ExplainContractOutput | undefined;
+        let transactionDetails: TransactionDetails | undefined;
+        try {
+          // These will hit the cache if available
+          const contractDetails = await ctx.service.getContractDetails({ chainId, contractAddress });
+          contractExplanation = await ctx.service.explainContract(input, contractDetails);
+          transactionDetails = await ctx.service.getTransactionByHash({
+            chainId,
+            contractAddress,
+            transactionHash,
+            abi: contractDetails.abi,
+          });
+        } catch (err) {
+          return observable<Partial<ExplainTransactionOutput>, Error>((emit) => {
+            emit.error(err instanceof Error ? err : new Error(String(err)));
+            emit.complete();
+            transactionSubscriptions.delete(`${input.sessionId}-${input.transactionHash}`);
+            return () => {};
+          });
+        }
+
+        return observable<Partial<ExplainTransactionOutput>, Error>((emit) => {
+          // Otherwise, stream the explanation and return a cleanup function
+          return ctx.service.explainTransactionStream(transactionDetails, contractExplanation, {
+            onProgress: (obj) => emit.next(obj),
+            onComplete: () => {
+              emit.complete();
+              transactionSubscriptions.delete(`${input.sessionId}-${input.transactionHash}`);
+            },
+            onError: (err) => {
+              emit.error(
+                new TRPCError({
+                  code: "INTERNAL_SERVER_ERROR",
+                  message: err.message,
+                }),
+              );
+
+              transactionSubscriptions.delete(`${input.sessionId}-${input.transactionHash}`);
+            },
+          });
+        });
+      }),
   });
 }
 

@@ -25,6 +25,12 @@ export type GetTransactionsInput = {
   abi: abi.ABI;
 };
 
+export type GetTransactionInput = {
+  chainId: string;
+  transactionHash: Hex;
+  abi: abi.ABI;
+};
+
 export type GetDecodedTransactionsInput = {
   chainId: number | string;
   abi: abi.ABI;

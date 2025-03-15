@@ -10,6 +10,7 @@ export type ExplainContractInput = {
 
 export type ExplainTransactionInput = {
   chainId: string;
+  contractAddress: Address;
   transactionHash: Hex;
 };
 

@@ -65,7 +65,7 @@ export const ContractDetails: FC<{ className?: string }> = ({ className }) => {
         <div className="flex justify-end">
           <Badge variant="outline" className="flex items-center gap-2">
             <Loader2 className="h-3 w-3 animate-spin" />
-            Analyzing...
+            Analyzing contract...
           </Badge>
         </div>
       )}
