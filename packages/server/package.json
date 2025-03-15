@@ -12,6 +12,7 @@
     "start:cache": "chmod +x ./bin/start-cache.sh && ./bin/start-cache.sh",
     "start:cache:ci": "chmod +x ./bin/start-cache.sh && ./bin/start-cache.sh --ci",
     "start:server": "dotenvx run -f ./../../.env --quiet -- tsx bin/index",
+    "start:server:debug": "DEBUG=* pnpm start:server",
     "start:server:ci": "nohup dotenvx run -f ./../../.env --quiet -- tsx bin/index > /dev/null 2>&1 &",
     "teardown": "pnpm teardown:cache && pnpm teardown:server",
     "teardown:cache": "docker-compose -f docker-compose.cache.yml down --volumes --remove-orphans",

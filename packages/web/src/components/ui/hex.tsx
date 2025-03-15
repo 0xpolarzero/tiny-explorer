@@ -1,8 +1,9 @@
 import { FC, useState } from "react";
-import { Copy, CopyCheck, ExternalLink } from "lucide-react";
+import { Check, Copy, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { Hex as HexType } from "tevm";
 
+import { Button } from "@/components/ui/button";
 import { InlineCode } from "@/components/ui/inline-code";
 import { Link } from "@/components/ui/link";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -42,16 +43,22 @@ export const Hex: FC<HexProps> = ({ value, type, explorerUrl, className }) => {
             </div>
           )}
         </TooltipTrigger>
-        <TooltipContent className="flex items-center gap-2">
+        <TooltipContent className="flex items-center">
           <InlineCode className="bg-transparent">{value}</InlineCode>
-          {isCopied ? (
-            <CopyCheck className="text-muted-foreground hover:text-muted h-4 w-4" />
-          ) : (
-            <Copy
-              onClick={handleCopy}
-              className="text-muted-foreground hover:text-muted h-4 w-4 cursor-pointer transition-colors"
-            />
-          )}
+          <Button
+            className="hover:text-muted-foreground size-7 cursor-pointer p-0 hover:bg-transparent"
+            variant="ghost"
+            title="Copy to clipboard"
+            onClick={handleCopy}
+            type="button"
+            aria-label="Copy to clipboard"
+          >
+            {isCopied ? (
+              <Check className="animate-in fade-in zoom-in size-3 duration-300" />
+            ) : (
+              <Copy className="animate-in fade-in size-3 duration-300" />
+            )}
+          </Button>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

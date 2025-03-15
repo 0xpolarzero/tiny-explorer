@@ -43,7 +43,7 @@ export class WhatsAbiService {
       const { abi, contractResult } = await autoload(contractAddress, {
         provider,
         abiLoader,
-        followProxies: false,
+        followProxies: false, // TODO: enable when fixed
         loadContractResult: true,
       });
 

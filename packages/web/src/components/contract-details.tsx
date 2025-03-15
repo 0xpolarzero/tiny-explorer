@@ -102,8 +102,8 @@ const FunctionsSection = memo(({ functions }: { functions: ExplainContractOutput
               <span className="text-sm font-medium">{func?.name}</span>
               <div className="hidden w-fit flex-1 md:inline">
                 <InlineCode>
-                  {func?.signature.slice(0, 70)}
-                  {func?.signature.length > 70 && "..."}
+                  {func?.signature?.slice(0, 70)}
+                  {func?.signature?.length > 70 && "..."}
                 </InlineCode>
               </div>
 
@@ -226,8 +226,8 @@ const EventsSection = memo(({ events }: { events: ExplainContractOutput["events"
               <span className="text-sm font-medium">{event?.name}</span>
               <div className="hidden w-fit flex-1 md:inline">
                 <InlineCode>
-                  {event?.signature.slice(0, 70)}
-                  {event?.signature.length > 70 && "..."}
+                  {event?.signature?.slice(0, 70)}
+                  {event?.signature?.length > 70 && "..."}
                 </InlineCode>
               </div>
             </AccordionTrigger>
