@@ -1,7 +1,6 @@
 import { z } from "zod";
 
-// TODO: when we switch to a local model using LM Studio, enforce json schema return type:
-// https://lmstudio.ai/docs/app/api/structured-output
+// Enforce json schema return type with LM Studio: https://lmstudio.ai/docs/app/api/structured-output
 
 export const EXPLAIN_CONTRACT = {
   outputSchema: z.object({

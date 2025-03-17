@@ -1,5 +1,4 @@
 import { ContractDetails } from "@/components/output/contract-details";
-import { Interact } from "@/components/output/interact";
 import { TransactionsTable } from "@/components/output/transactions-table";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -11,13 +10,10 @@ export const Output = () => {
 
   return (
     <Tabs defaultValue="contract-details" className="flex-1">
-      <TabsList className="grid w-full grid-cols-3">
+      <TabsList className="grid w-full grid-cols-2">
         <TabsTrigger value="contract-details">Contract Details</TabsTrigger>
         <TabsTrigger value="transactions" disabled={!output}>
           {loading ? <Skeleton className="h-4 w-24" /> : "Transactions"}
-        </TabsTrigger>
-        <TabsTrigger value="interact" disabled={!output}>
-          {loading ? <Skeleton className="h-4 w-24" /> : "Interact"}
         </TabsTrigger>
       </TabsList>
       <TabsContent value="contract-details">
@@ -33,9 +29,6 @@ export const Output = () => {
       </TabsContent>
       <TabsContent value="transactions">
         <TransactionsTable />
-      </TabsContent>
-      <TabsContent value="interact">
-        <Interact />
       </TabsContent>
     </Tabs>
   );

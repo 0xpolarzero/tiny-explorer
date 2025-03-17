@@ -1,6 +1,5 @@
-// TODO: check if covers all openzeppelin contracts and if correct
-// TODO: add more known popular contracts
-// - solady
+// TODO: check if it covers all openzeppelin contracts and if correct
+// TODO: add more known popular contracts (e.g. solady)
 export const KNOWN_CONTRACTS = [
   /* ------------------------------ OPENZEPPELIN ------------------------------ */
   {

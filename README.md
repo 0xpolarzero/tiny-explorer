@@ -1,11 +1,10 @@
 # TinyExplorer
 
-**A user-friendly interface for explaining contracts and events in real time on EVM chains using AI.**
+**A user-friendly interface for explaining contracts and transactions on EVM chains using a LLM.**
 
 ## Table of contents
 
 - [Overview](#overview)
-- [Features](#features)
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Usage](#usage)
@@ -21,13 +20,10 @@
 
 ## Overview
 
-TinyExplorer is a system that combines blockchain interaction with AI language models to provide intuitive, human-readable explanations of smart contracts and their events. By analyzing contract source code, ABIs, and event data, the system helps users understand contract functionality without requiring extensive blockchain or Solidity knowledge, and explains events as they occur.
-
-## Features
+TinyExplorer provides intuitive, human-readable explanations of smart contracts, including their functions and events, and breaks down transactions into a similar format.
 
 - **Contract Analysis**: Fetch and analyze smart contract source code and ABIs
-- **AI Explanations**: Generate human-readable explanations of contract functionality using LLMs
-- **Event Monitoring**: Track and explain contract events in real-time
+- **AI Explanations**: Generate human-readable explanations of contract functionality and interactions using LLMs
 - **Multi-Chain Support**: Configurable support for different EVM-compatible blockchains
 - **Caching**: Efficient caching to reduce API calls and improve performance
 - **User Interface**: Clean, intuitive React UI for interacting with the system
@@ -109,7 +105,7 @@ The project is organized as a monorepo with the following packages:
 Future development plans:
 
 - [x] Use whatsabi to get the contract code and abi (especially code)
-- [ ] use multiple api keys for various chains
+- [ ] ass multiple api keys for various chains
 - [x] create server for both llm & backend stuff
   - [x] use caching for contract code & abi
 - [ ] add lm studio running in docker instead of deep infra https://gitlab.com/logliwo/lm-studio-docker-compose/-/tree/main?ref_type=heads (??)
@@ -117,17 +113,12 @@ Future development plans:
 - [ ] the cache is not a database; a lot of stuff needs to be saved into a database instead (e.g. transaction details, transaction explanations)
 - [ ] figure out a good model + some ai slop: sometimes it loops over the functions, forgets some, doesn't detect modifiers, etc. Most important is tx simulation tho, so we really need this one right.
 - [ ] simulate tx with tevm then explain it
-- [ ] better ux after tx was explained and "verified", something to copy/paste or a link and run the tx from your wallet?
+- [ ] simulate multiple txs (actually executed with tevm for accurate state) and get the payload for batch executing
+- [ ] better ux after tx/chain of txs was explained and "verified", something to copy/paste or a link and run the tx from your wallet?
 - [ ] for unverified contracts, better interpretation where the LLM is provided all state/storage changes and figures out if anything weird happened
 - [ ] train LLM for this specific purpose (on transactions that might not be understandable -> understandable output)
 - [ ] provide just API for external use, maybe it can be self-hosted as well
 - [ ] port to krome, enter api keys first time, then run whenever you want and eveything is stored locally
-
-(later)
-
-- add caching to llm responses (chain_id:contract_address:function_name)
-  - retrieve a general explanation of the function and cache it (1st prompt)
-  - only need to reprompt with the provided arguments (2nd prompt)
 
 ## Contributing
 

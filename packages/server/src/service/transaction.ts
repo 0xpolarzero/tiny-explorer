@@ -9,7 +9,6 @@ import { debug } from "@server/app/debug";
 
 export type TransactionServiceOptions = {};
 
-// TODO: for subscription: https://www.tevm.sh/core/tevm-node-interface#receipt--log-management
 export class TransactionService {
   constructor(config: TransactionServiceOptions) {}
 
