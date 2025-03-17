@@ -32,7 +32,7 @@ export const Config = () => {
   const { chainId, contractAddress, update: updateStore } = useConfigStore();
   const { subContractExplanation } = useSearch();
   const { fetchTransactions } = useTransactions();
-  const { loading } = useSearchStore();
+  const { loading, error } = useSearchStore();
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -132,8 +132,8 @@ export const Config = () => {
             </FormItem>
           )}
         />
-        <Button className="cursor-pointer md:-mt-1.5" type="submit" disabled={loading}>
-          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Search"}
+        <Button className="cursor-pointer md:-mt-1.5" type="submit" disabled={loading && !error}>
+          {loading && !error ? <Loader2 className="h-4 w-4 animate-spin" /> : "Search"}
         </Button>
       </form>
     </Form>

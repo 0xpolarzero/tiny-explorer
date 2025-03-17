@@ -73,8 +73,10 @@ export const ContractDetails: FC<{ className?: string }> = ({ className }) => {
       {output.overview && <OverviewSection overview={output.overview} />}
 
       <div className="flex flex-col gap-4 xl:flex-row">
-        {output.functions && output.functions.length > 0 && <FunctionsSection functions={output.functions} />}
-        {output.events && output.events.length > 0 && <EventsSection events={output.events} />}
+        {output.functions && output.functions.length > 0 && (
+          <FunctionsSection functions={output.functions} loading={loading && !output.events} />
+        )}
+        {output.events && output.events.length > 0 && <EventsSection events={output.events} loading={loading} />}
       </div>
     </div>
   );
@@ -89,131 +91,139 @@ const OverviewSection = memo(({ overview }: { overview: string }) => (
   </Card>
 ));
 
-const FunctionsSection = memo(({ functions }: { functions: ExplainContractOutput["functions"] }) => (
-  <Card className="flex w-full flex-col gap-4 xl:max-w-[676px]">
-    <CardHeader>
-      <CardTitle>Functions</CardTitle>
-    </CardHeader>
-    <CardContent className="text-sm leading-relaxed whitespace-pre-wrap">
-      <Accordion type="single" collapsible>
-        {functions.map((func, index) => (
-          <AccordionItem key={`function-${func?.name || index}`} value={index.toString()} className="cursor-pointer">
-            <AccordionTrigger className="cursor-pointer gap-2">
-              <span className="text-sm font-medium">{func?.name}</span>
-              <div className="hidden w-fit flex-1 md:inline">
-                <InlineCode>
-                  {func?.signature?.slice(0, 70)}
-                  {func?.signature?.length > 70 && "..."}
-                </InlineCode>
-              </div>
-
-              {func?.visibility?.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {func?.visibility.map((v) => (
-                    <Badge
-                      key={v}
-                      variant={v !== "internal" && v !== "private" ? "default" : "outline"}
-                      className="hidden md:inline"
-                    >
-                      {v}
-                    </Badge>
-                  ))}
+const FunctionsSection = memo(
+  ({ functions, loading }: { functions: ExplainContractOutput["functions"]; loading: boolean }) => (
+    <Card className="flex w-full flex-col gap-4 xl:max-w-[676px]">
+      <CardHeader>
+        <CardTitle>Functions</CardTitle>
+      </CardHeader>
+      <CardContent className="text-sm leading-relaxed whitespace-pre-wrap">
+        <Accordion type="single" collapsible>
+          {functions.map((func, index) => (
+            <AccordionItem key={`function-${func?.name || index}`} value={index.toString()} className="cursor-pointer">
+              <AccordionTrigger className="cursor-pointer items-center gap-2">
+                <span className="text-sm font-medium">{func?.name}</span>
+                <div className="hidden w-fit flex-1 items-center gap-2 md:flex">
+                  <InlineCode>
+                    {func?.signature?.slice(0, 70)}
+                    {func?.signature?.length > 70 && "..."}
+                  </InlineCode>
+                  {index === functions.length - 1 && loading && <Loader2 className="h-3 w-3 animate-spin" />}
                 </div>
-              )}
-
-              {!!func?.modifiers?.length && (
-                <Badge variant="outline" className="hidden md:inline">
-                  {"modifiers"}
-                </Badge>
-              )}
-
-              {!!func?.payable && (
-                <Badge variant="destructive" className="hidden md:inline">
-                  {"payable"}
-                </Badge>
-              )}
-            </AccordionTrigger>
-            <AccordionContent>
-              <p className="mb-4 text-sm">{func?.description}</p>
-
-              {func?.parameters?.length > 0 && (
-                <div className="mb-4">
-                  <h4 className="mb-2 text-sm font-semibold">Parameters</h4>
-                  <div className="grid gap-2">
-                    {func.parameters.map((param, paramIndex) => (
-                      <div key={`param-${param?.name || paramIndex}`} className="bg-muted/30 rounded-md p-3">
-                        <div className="mb-1 flex items-center gap-2">
-                          <span className="bg-muted rounded px-1.5 py-0.5 font-mono text-xs">{param?.type}</span>
-                          <span className="font-medium">{param?.name}</span>
-                        </div>
-                        {param?.description && <p className="text-muted-foreground text-xs">{param.description}</p>}
-                      </div>
-                    ))}
+                {index === functions.length - 1 && loading && (
+                  <div className="flex-1 md:hidden">
+                    <Loader2 className="h-3 w-3 animate-spin" />
                   </div>
-                </div>
-              )}
+                )}
 
-              {func?.returns?.length > 0 && (
-                <div className="mb-4">
-                  <h4 className="mb-2 text-sm font-semibold">Returns</h4>
-                  <div className="grid gap-2">
-                    {func.returns.map((ret, retIndex) => (
-                      <div key={`return-${retIndex}`} className="bg-muted/30 rounded-md p-3">
-                        <div className="mb-1 flex items-center gap-2">
-                          <span className="bg-muted rounded px-1.5 py-0.5 font-mono text-xs">{ret?.type}</span>
-                        </div>
-                        {ret?.description && <p className="text-muted-foreground text-xs">{ret.description}</p>}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {func?.visibility?.length > 0 && (
-                <div className="mb-4">
-                  <h4 className="mb-2 text-sm font-semibold">Visibility</h4>
+                {func?.visibility?.length > 0 && func?.name !== "constructor" && (
                   <div className="flex flex-wrap gap-2">
-                    {func.visibility.map((v) => (
-                      <Badge key={v} variant="outline">
+                    {func?.visibility.map((v) => (
+                      <Badge
+                        key={v}
+                        variant={v !== "internal" && v !== "private" ? "default" : "outline"}
+                        className="hidden md:inline"
+                      >
                         {v}
                       </Badge>
                     ))}
                   </div>
-                </div>
-              )}
+                )}
 
-              {func?.modifiers && func.modifiers.length > 0 && (
-                <div className="mb-4">
-                  <h4 className="mb-2 text-sm font-semibold">Modifiers</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {func.modifiers.map((modifier, modIndex) => (
-                      <Badge key={`modifier-${modIndex}`} variant="outline">
-                        {modifier}
-                      </Badge>
-                    ))}
+                {!!func?.modifiers?.length && (
+                  <Badge variant="outline" className="hidden md:inline">
+                    {"modifiers"}
+                  </Badge>
+                )}
+
+                {!!func?.payable && (
+                  <Badge variant="destructive" className="hidden md:inline">
+                    {"payable"}
+                  </Badge>
+                )}
+              </AccordionTrigger>
+              <AccordionContent>
+                <p className="mb-4 text-sm">{func?.description}</p>
+
+                {func?.parameters?.length > 0 && (
+                  <div className="mb-4">
+                    <h4 className="mb-2 text-sm font-semibold">Parameters</h4>
+                    <div className="grid gap-2">
+                      {func.parameters.map((param, paramIndex) => (
+                        <div key={`param-${param?.name || paramIndex}`} className="bg-muted/30 rounded-md p-3">
+                          <div className="mb-1 flex items-center gap-2">
+                            <span className="bg-muted rounded px-1.5 py-0.5 font-mono text-xs">{param?.type}</span>
+                            <span className="font-medium">{param?.name}</span>
+                          </div>
+                          {param?.description && <p className="text-muted-foreground text-xs">{param.description}</p>}
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {func?.sideEffects && func.sideEffects.length > 0 && (
-                <div>
-                  <h4 className="mb-2 text-sm font-semibold">Side Effects</h4>
-                  <ul className="list-disc space-y-1 pl-5 text-xs">
-                    {func.sideEffects.map((effect, effectIndex) => (
-                      <li key={`effect-${effectIndex}`}>{effect}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </AccordionContent>
-          </AccordionItem>
-        ))}
-      </Accordion>
-    </CardContent>
-  </Card>
-));
+                {func?.returns?.length > 0 && (
+                  <div className="mb-4">
+                    <h4 className="mb-2 text-sm font-semibold">Returns</h4>
+                    <div className="grid gap-2">
+                      {func.returns.map((ret, retIndex) => (
+                        <div key={`return-${retIndex}`} className="bg-muted/30 rounded-md p-3">
+                          <div className="mb-1 flex items-center gap-2">
+                            <span className="bg-muted rounded px-1.5 py-0.5 font-mono text-xs">{ret?.type}</span>
+                          </div>
+                          {ret?.description && <p className="text-muted-foreground text-xs">{ret.description}</p>}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
-const EventsSection = memo(({ events }: { events: ExplainContractOutput["events"] }) => (
+                {func?.visibility?.length > 0 && (
+                  <div className="mb-4">
+                    <h4 className="mb-2 text-sm font-semibold">Visibility</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {func.visibility.map((v) => (
+                        <Badge key={v} variant="outline">
+                          {v}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {func?.modifiers && func.modifiers.length > 0 && (
+                  <div className="mb-4">
+                    <h4 className="mb-2 text-sm font-semibold">Modifiers</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {func.modifiers.map((modifier, modIndex) => (
+                        <Badge key={`modifier-${modIndex}`} variant="outline">
+                          {modifier}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {func?.sideEffects && func.sideEffects.length > 0 && (
+                  <div>
+                    <h4 className="mb-2 text-sm font-semibold">Side Effects</h4>
+                    <ul className="list-disc space-y-1 pl-5 text-xs">
+                      {func.sideEffects.map((effect, effectIndex) => (
+                        <li key={`effect-${effectIndex}`}>{effect}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
+      </CardContent>
+    </Card>
+  ),
+);
+
+const EventsSection = memo(({ events, loading }: { events: ExplainContractOutput["events"]; loading: boolean }) => (
   <Card className="flex w-full flex-col gap-4 xl:max-w-[676px]">
     <CardHeader>
       <CardTitle>Events</CardTitle>
@@ -224,12 +234,18 @@ const EventsSection = memo(({ events }: { events: ExplainContractOutput["events"
           <AccordionItem key={`event-${event?.name || index}`} value={index.toString()} className="cursor-pointer">
             <AccordionTrigger className="cursor-pointer gap-2">
               <span className="text-sm font-medium">{event?.name}</span>
-              <div className="hidden w-fit flex-1 md:inline">
+              <div className="hidden w-fit flex-1 md:flex">
                 <InlineCode>
                   {event?.signature?.slice(0, 70)}
                   {event?.signature?.length > 70 && "..."}
                 </InlineCode>
+                {index === events.length - 1 && loading && <Loader2 className="h-3 w-3 animate-spin" />}
               </div>
+              {index === events.length - 1 && loading && (
+                <div className="flex-1 md:hidden">
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                </div>
+              )}
             </AccordionTrigger>
             <AccordionContent>
               <p className="mb-4 text-sm">{event?.description}</p>

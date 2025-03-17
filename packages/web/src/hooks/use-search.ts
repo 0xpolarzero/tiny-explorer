@@ -34,8 +34,9 @@ export const useSearch = () => {
             updateOutput(obj);
           },
           onError: (err) => {
-            console.error(err);
             setError(true);
+            console.error(err);
+            onError(err instanceof Error ? err : new Error(String(err)));
           },
           onComplete: () => {
             onComplete();

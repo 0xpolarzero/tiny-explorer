@@ -115,6 +115,7 @@ Future development plans:
 - [ ] add lm studio running in docker instead of deep infra https://gitlab.com/logliwo/lm-studio-docker-compose/-/tree/main?ref_type=heads (??)
 - [ ] update server to use serverless
 - [ ] the cache is not a database; a lot of stuff needs to be saved into a database instead (e.g. transaction details, transaction explanations)
+- [ ] figure out a good model + some ai slop: sometimes it loops over the functions, forgets some, doesn't detect modifiers, etc. Most important is tx simulation tho, so we really need this one right.
 - [ ] simulate tx with tevm then explain it
 - [ ] better ux after tx was explained and "verified", something to copy/paste or a link and run the tx from your wallet?
 - [ ] for unverified contracts, better interpretation where the LLM is provided all state/storage changes and figures out if anything weird happened

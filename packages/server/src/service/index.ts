@@ -96,7 +96,12 @@ export class Service {
     return this.llm.explainContractStream(contractDetails, {
       ...callbacks,
       onComplete: (obj) => {
-        this.cache.set(getCacheKey.explainContract(input), obj);
+        try {
+          this.cache.set(getCacheKey.explainContract(input), obj);
+        } catch (err) {
+          debug("Error in onComplete:", err);
+          callbacks.onError(err instanceof Error ? err : new Error(String(err)));
+        }
         callbacks.onComplete(obj);
       },
     });
@@ -175,7 +180,18 @@ export class Service {
     callbacks: StreamCallbacks<ExplainTransactionOutput>,
   ): () => void {
     try {
-      return this.llm.explainTransactionStream(input, contractExplanation, callbacks);
+      return this.llm.explainTransactionStream(input, contractExplanation, {
+        ...callbacks,
+        onComplete: (obj) => {
+          try {
+            this.cache.set(getCacheKey.getTransactionExplanation(input.hash), obj);
+          } catch (err) {
+            debug("Error in onComplete:", err);
+            callbacks.onError(err instanceof Error ? err : new Error(String(err)));
+          }
+          callbacks.onComplete(obj);
+        },
+      });
     } catch (err) {
       debug("Error in explainEventStream:", err);
       throw err;
