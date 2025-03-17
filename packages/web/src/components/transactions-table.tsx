@@ -105,14 +105,22 @@ const TransactionExpand = ({ row }: { row: TransactionDetails & { explorerUrl?: 
           <span className="col-span-2 text-sm font-medium text-wrap">
             {renderTextWithComponents(output?.summary, explorerUrl)}
           </span>
-          <ShieldQuestion className="h-4 w-4" />
-          <span className="text-sm text-wrap">
-            {renderTextWithComponents(output?.details?.securityAnalysis, explorerUrl)}
-          </span>
-          <Handshake className="h-4 w-4" />
-          <span className="text-sm text-wrap">
-            {renderTextWithComponents(output?.details?.businessImpact, explorerUrl)}
-          </span>
+          {!!output.details?.securityAnalysis && (
+            <>
+              <ShieldQuestion className="h-4 w-4" />
+              <span className="text-sm text-wrap">
+                {renderTextWithComponents(output?.details?.securityAnalysis, explorerUrl)}
+              </span>
+            </>
+          )}
+          {!!output.details?.businessImpact && (
+            <>
+              <Handshake className="h-4 w-4" />
+              <span className="text-sm text-wrap">
+                {renderTextWithComponents(output?.details?.businessImpact, explorerUrl)}
+              </span>
+            </>
+          )}
           {!!output.details && (
             <CodeBlock
               language="js"
