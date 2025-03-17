@@ -1,23 +1,19 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { Code, ExternalLink, Handshake, Lightbulb, Loader2, ShieldQuestion } from "lucide-react";
 import { Address } from "tevm";
 
-import { ExplainTransactionOutput } from "@core/llm/types";
 import { TransactionDetails } from "@core/types";
 import { bigIntReviver } from "@core/utils";
+import { Badge } from "@/components/ui/badge";
 import CodeBlock from "@/components/ui/code-block";
 import { DataTable } from "@/components/ui/data-table";
 import { Hex } from "@/components/ui/hex";
 import { InlineCode } from "@/components/ui/inline-code";
 import { Link } from "@/components/ui/link";
 import { useTransaction } from "@/hooks/use-transaction";
-import { useTransactions } from "@/hooks/use-transactions";
 import { useConfigStore } from "@/store/config";
 import { useTransactionsStore } from "@/store/transactions";
-
-import { Badge } from "./ui/badge";
-import { Button } from "./ui/button";
 
 const columns: ColumnDef<TransactionDetails & { explorerUrl?: string }>[] = [
   {
@@ -142,7 +138,7 @@ const TransactionExpand = ({ row }: { row: TransactionDetails & { explorerUrl?: 
   );
 };
 
-export const TransactionsTable = () => {
+export const TransactionsTable = ({ className }: { className?: string }) => {
   const { transactions, loading, error } = useTransactionsStore();
   const { subTransactionExplanation, unsubscribe } = useTransaction();
   const { getCurrentChain } = useConfigStore();
@@ -174,6 +170,7 @@ export const TransactionsTable = () => {
       loading={loading}
       loadingLabel="Loading transactions..."
       isPaginated={transactions && transactions.length > 10 ? true : false}
+      className={className}
     />
   );
 };

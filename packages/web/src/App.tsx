@@ -1,7 +1,6 @@
 import { Config } from "@/components/config";
-import { ContractDetails } from "@/components/contract-details";
 import { Footer } from "@/components/footer";
-import { TransactionsTable } from "@/components/transactions-table";
+import { Output } from "@/components/output";
 import { Separator } from "@/components/ui/separator";
 import { Wrapper } from "@/components/wrapper";
 import { ServerProvider } from "@/providers/server-provider";
@@ -16,8 +15,7 @@ const App = () => {
         <Wrapper>
           <Config />
           <Separator />
-          <ContractDetails className="flex-1" />
-          <TransactionsTable />
+          <Output />
           <Footer />
         </Wrapper>
       </ThemeProvider>

@@ -14,6 +14,7 @@ import { AlertCircle, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Loader2
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { cn } from "@/lib/utils";
 
 import { Badge } from "./badge";
 
@@ -30,6 +31,7 @@ interface DataTableProps<TData, TValue> {
   errorLabel?: string;
   loading?: boolean;
   loadingLabel?: string;
+  className?: string;
 }
 
 export function DataTable<TData, TValue>({
@@ -45,6 +47,7 @@ export function DataTable<TData, TValue>({
   errorLabel = "Error loading data.",
   loading = false,
   loadingLabel = "Loading...",
+  className,
 }: DataTableProps<TData, TValue>) {
   const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({});
 
@@ -95,7 +98,7 @@ export function DataTable<TData, TValue>({
   });
 
   return (
-    <div className="space-y-4">
+    <div className={cn("space-y-4", className)}>
       <div>
         <Table>
           <TableHeader>

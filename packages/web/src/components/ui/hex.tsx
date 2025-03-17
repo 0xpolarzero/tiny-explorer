@@ -1,5 +1,5 @@
 import { FC, useState } from "react";
-import { Check, Copy, ExternalLink } from "lucide-react";
+import { Check, ClipboardIcon, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { Hex as HexType } from "tevm";
 
@@ -46,8 +46,7 @@ export const Hex: FC<HexProps> = ({ value, type, explorerUrl, className }) => {
         <TooltipContent className="flex items-center">
           <InlineCode className="bg-transparent">{value}</InlineCode>
           <Button
-            className="hover:text-muted-foreground size-7 cursor-pointer p-0 hover:bg-transparent"
-            variant="ghost"
+            className="size-7 cursor-pointer p-0"
             title="Copy to clipboard"
             onClick={handleCopy}
             type="button"
@@ -56,7 +55,7 @@ export const Hex: FC<HexProps> = ({ value, type, explorerUrl, className }) => {
             {isCopied ? (
               <Check className="animate-in fade-in zoom-in size-3 duration-300" />
             ) : (
-              <Copy className="animate-in fade-in size-3 duration-300" />
+              <ClipboardIcon className="animate-in fade-in size-3 duration-300" />
             )}
           </Button>
         </TooltipContent>

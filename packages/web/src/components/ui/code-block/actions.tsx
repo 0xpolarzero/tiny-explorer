@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check, Copy } from "lucide-react";
+import { Check, ClipboardIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -22,7 +22,8 @@ const CodeBlockActions: React.FC<CodeBlockActionsProps> = ({ code, switcher, inH
 
   const isTouchScreen = mounted ? /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) : false;
 
-  const copyToClipboard = () => {
+  const copyToClipboard = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
     if (!copied) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
@@ -65,7 +66,7 @@ const CodeBlockActions: React.FC<CodeBlockActionsProps> = ({ code, switcher, inH
         {copied ? (
           <Check className="animate-in fade-in zoom-in size-3 duration-300" />
         ) : (
-          <Copy className="animate-in fade-in size-3 duration-300" />
+          <ClipboardIcon className="animate-in fade-in size-3 duration-300" />
         )}
       </Button>
     </div>
