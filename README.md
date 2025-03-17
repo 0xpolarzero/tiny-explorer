@@ -108,13 +108,19 @@ The project is organized as a monorepo with the following packages:
 
 Future development plans:
 
-- Use whatsabi to get the contract code and abi (especially code)
-- use multiple api keys for various chains
-- create server for both llm & backend stuff
-  - use caching for contract code & abi
-- add lm studio running in docker instead of deep infra https://gitlab.com/logliwo/lm-studio-docker-compose/-/tree/main?ref_type=heads (??)
-- update server to use serverless
-- the cache is not a database; a lot of stuff needs to be saved into a database instead (e.g. transaction details, transaction explanations)
+- [x] Use whatsabi to get the contract code and abi (especially code)
+- [ ] use multiple api keys for various chains
+- [x] create server for both llm & backend stuff
+  - [x] use caching for contract code & abi
+- [ ] add lm studio running in docker instead of deep infra https://gitlab.com/logliwo/lm-studio-docker-compose/-/tree/main?ref_type=heads (??)
+- [ ] update server to use serverless
+- [ ] the cache is not a database; a lot of stuff needs to be saved into a database instead (e.g. transaction details, transaction explanations)
+- [ ] simulate tx with tevm then explain it
+- [ ] better ux after tx was explained and "verified", something to copy/paste or a link and run the tx from your wallet?
+- [ ] for unverified contracts, better interpretation where the LLM is provided all state/storage changes and figures out if anything weird happened
+- [ ] train LLM for this specific purpose (on transactions that might not be understandable -> understandable output)
+- [ ] provide just API for external use, maybe it can be self-hosted as well
+- [ ] port to krome, enter api keys first time, then run whenever you want and eveything is stored locally
 
 (later)
 
